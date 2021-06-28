@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Sprites/curses_vector_16x24.png" type="Texture" id=1]
+
+[sub_resource type="AtlasTexture" id=1]
+atlas = ExtResource( 1 )
+region = Rect2( 0, 96, 16, 24 )
+
+[node name="Player" type="Node2D"]
+position = Vector2( 105.839, 66.5956 )
+
+[node name="Sprite" type="Sprite" parent="."]
+texture = SubResource( 1 )
