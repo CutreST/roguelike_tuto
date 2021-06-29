@@ -1,6 +1,6 @@
 using Godot;
 using System;
-using DialogComp;
+//using DialogComp;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
@@ -16,7 +16,7 @@ namespace Base
         private static string FILE_DEF = "Test.xml";
 
         
-
+/*
 
         #region load_save XML
         //Obviamente esto irá en una clase a parte, tanto el load como el save funcan
@@ -39,7 +39,7 @@ namespace Base
             tr.Close();
             return all;
         }
-        #endregion
+        #endregion*/
 
     }
 }

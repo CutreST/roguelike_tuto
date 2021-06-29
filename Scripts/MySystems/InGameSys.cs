@@ -1,5 +1,5 @@
 using Godot;
-
+using MySystems.MyInput;
 using System;
 
 namespace MySystems
@@ -10,7 +10,8 @@ namespace MySystems
     public class InGameSys : Visual_SystemBase
     {       
 
-        
+        public InputInGame GameInput{ get => (InputInGame)MyInput; set => MyInput = value; }
+
         public delegate void SimpleDelegate();
         public event SimpleDelegate OnPauseStack_E;
         public event SimpleDelegate OnResumeStack_E;
@@ -33,6 +34,7 @@ namespace MySystems
         public override void OnEnterSystem(params object[] obj)
         {
             Messages.EnterSystem(this);
+            GameInput = new InputInGame(this);
 
         }
         public override void OnExitSystem(params object[] obj)
@@ -83,13 +85,10 @@ namespace MySystems
         public override void MyUpdate(in float delta)
         {
             GameTime += delta;
+            MyInput.GetInput();
             base.MyUpdate(delta);
         }
 
-        public override void MyPhysic(in float delta)
-        {
-            base.MyPhysic(delta);
-        }
         #endregion
 
       

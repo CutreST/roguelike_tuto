@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
-//using MySystems.Input;
+using MySystems.MyInput;
 using Base.Interfaces;
 using Godot;
+
 
 namespace MySystems
 {
@@ -35,7 +36,7 @@ namespace MySystems
         /// </summary>
         /// <param name="go">The gameobject to attach</param>
 
-        //public MyInputSys MyInput { get; set; }
+        public InputBase MyInput { get; set; }
 
         //public delegate void InputDelegate(InputAction.CallbackContext context);
         public Visual_SystemBase(in Node go, in System_Manager manager)
@@ -54,7 +55,7 @@ namespace MySystems
         /// </summary>
         /// <param name="delta">Time between frames</param>
         public virtual void MyUpdate(in float delta)
-        {
+        {            
             for (int i = this.UpdateObjs.Count - 1; i >= 0; i--)
             {
                 this.UpdateObjs[i].MyUpdate(delta);
