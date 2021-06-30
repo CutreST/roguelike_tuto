@@ -5,7 +5,15 @@ using World;
 
 namespace MySystems
 {
-
+    /// <summary>
+    /// Movement system.
+    /// </summary>
+    /// <remarks>
+    /// Each <see cref="MovementComp"/> calls this system to be able to perform a movement. Right now the movement system is 
+    /// tilebased, so we neeed a reference to the <see cref="WorlMapCont"/>. OJU! It's the world map the one that holds the reference.
+    /// TODO:
+    /// Change this, cause we need a world to be able to move.
+    /// </remarks>
     public class MovementSystem : System_Base
     {
 
@@ -18,7 +26,8 @@ namespace MySystems
             
             tempPos = mov.MyEntity.GlobalPosition + new Vector2(mov.TILE_WIDTH, mov.TILE_HEIGHT) * mov.Direction;
 
-            if(MyWorld.IsTileBlocked((int)tempPos.x, (int)tempPos.y) == false){
+            //check for null only for test prourposes (ex: test the movement outside the world an so on)
+            if(MyWorld == null || MyWorld.IsTileBlocked((int)tempPos.x, (int)tempPos.y) == false){
                 mov.MyEntity.GlobalPosition = tempPos;
             }
         }

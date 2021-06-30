@@ -12,7 +12,7 @@ namespace Entities.Components
     public interface IComponentNode
     {
         /// <summary>
-        /// The <see cref="EntityNode"/>, father of the entity
+        /// The <see cref="Entity"/>, father of the component. Each <see cref="Entity"/> has a list components marked with this interface
         /// </summary>
         Entity MyEntity { get; set; }
         //Entity MyEntity { get; set; }

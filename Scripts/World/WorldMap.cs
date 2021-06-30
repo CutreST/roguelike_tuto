@@ -1,16 +1,39 @@
 using Godot;
 using System;
 
-
+/// <summary>
+/// Namespace for all the world related
+/// </summary>
 namespace World{
-
+    
+    /// <summary>
+    /// The worldmap. It has a 2d array of <see cref="Tile"/>
+    /// </summary>
     public class WorldMap{
+
+        /// <summary>
+        /// The witdh of the world
+        /// </summary>
         public readonly int WIDTH;
+
+        /// <summary>
+        /// Height of the world
+        /// </summary>
         public readonly int HEIGHT;
 
+        /// <summary>
+        /// 2d array of <see cref="Tile"/> that compose the map
+        /// </summary>
         public Tile[,] Tiles{ get; protected set; }
 
-
+        /// <summary>
+        /// Constructor.
+        /// <para>
+        /// OJU! It populates the map with some default settings
+        /// </para>
+        /// </summary>
+        /// <param name="width">Width of the map</param>
+        /// <param name="height">Height of the map</param>
         public WorldMap(in int width, in int height){
             this.WIDTH = width;
             this.HEIGHT = height;
@@ -20,6 +43,9 @@ namespace World{
             this.PopulateMap();
         }
 
+        /// <summary>
+        /// Populates the map with some default options
+        /// </summary>
         private void PopulateMap(){
             Tiles[30, 22] = new Tile(true, true);
             Tiles[31, 22] = new Tile(true, true);

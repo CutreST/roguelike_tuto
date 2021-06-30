@@ -4,26 +4,40 @@ using System;
 
 namespace Entities.Components
 {
+    /// <summary>
+    /// Component responsible for the <see cref="Entity"/>'s movement
+    /// </summary>
 
     public class MovementComp : Node, IComponentNode
     {
         public Entity MyEntity { get; set; }
 
+        /// <summary>
+        /// The direction of the movement
+        /// </summary>
         public Vector2 Direction{ get; protected set; }
 
+        /// <summary>
+        /// The <see cref="MovementSystem"/>
+        /// </summary>
         private MovementSystem _movSys;
+
+
         //TODO:
-        //Esto lo cambiaremos
+        //Create a class, struct or wathever to put the dimensions and so.
         [Export]
         public readonly int TILE_HEIGHT;
 
         [Export]
         public readonly int TILE_WIDTH;
 
+        /// <summary>
+        /// Moves the <see cref="Entity"/> calling <see cref="MovementSystem.Move(in MovementComp)"/>
+        /// </summary>
+        /// <param name="direction">Direction of the movement</param>
         public void Move(in Vector2 direction){
             Direction = direction;
             _movSys.Move(this);
-            //this.GlobalPosition += new Vector2(direction.x * TILE_WIDTH, direction.y * TILE_HEIGHT);
         }
 
         #region Godot methods

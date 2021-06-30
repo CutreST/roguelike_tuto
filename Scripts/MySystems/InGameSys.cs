@@ -13,7 +13,10 @@ namespace MySystems
         public WorldMapCont MyWorldCont{ get; set; }
 
 
-        //esto tendriamos que cambiarlo seguramente, pondremos una interfaz para los inputs
+        /// <summary>
+        /// The Ingame input. I think that maybe the inputs has to be an interface instead of
+        /// having the <see cref="InputBase"/> on the <see cref="Visual_SystemBase"/>
+        /// </summary>
         public InputInGame GameInput{ get => (InputInGame)MyInput; set => MyInput = value; }
 
         public delegate void SimpleDelegate();
@@ -88,7 +91,9 @@ namespace MySystems
 
         public override void MyUpdate(in float delta)
         {
+            //add time to the game time
             GameTime += delta;
+            //first, check input, then, look for all the update
             MyInput.GetInput();
             base.MyUpdate(delta);
         }
