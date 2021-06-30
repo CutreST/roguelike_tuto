@@ -10,16 +10,15 @@ atlas = ExtResource( 1 )
 region = Rect2( 0, 96, 16, 24 )
 
 [node name="Player" type="Node2D"]
-position = Vector2( 105.839, 66.5956 )
 script = ExtResource( 2 )
+
+[node name="Sprite" type="Sprite" parent="."]
+texture = SubResource( 1 )
 
 [node name="InputComponent" type="Node" parent="."]
 script = ExtResource( 3 )
 
-[node name="MovementComponent" type="Node2D" parent="."]
+[node name="MovementComponent" type="Node" parent="."]
 script = ExtResource( 4 )
 TILE_HEIGHT = 24
-TILE_WIDTH = 16
-
-[node name="Sprite" type="Sprite" parent="MovementComponent"]
-texture = SubResource( 1 )
+TILE_WIDTH = 24

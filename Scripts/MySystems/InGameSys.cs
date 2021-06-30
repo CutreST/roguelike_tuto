@@ -1,6 +1,7 @@
 using Godot;
 using MySystems.MyInput;
 using System;
+using World;
 
 namespace MySystems
 {
@@ -9,7 +10,10 @@ namespace MySystems
     /// </summary>
     public class InGameSys : Visual_SystemBase
     {       
+        public WorldMapCont MyWorldCont{ get; set; }
 
+
+        //esto tendriamos que cambiarlo seguramente, pondremos una interfaz para los inputs
         public InputInGame GameInput{ get => (InputInGame)MyInput; set => MyInput = value; }
 
         public delegate void SimpleDelegate();

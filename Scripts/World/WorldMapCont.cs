@@ -1,4 +1,5 @@
 using Godot;
+using MySystems;
 using System;
 
 namespace World
@@ -29,9 +30,48 @@ namespace World
         {
             base._EnterTree();
             this.MyWorld = new WorldMap(WIDTH, HEIGHT);
+
+            //pinta el gamemap
             this.RunTileMap();
+
+            //metemos esto en el gamesys
+            InGameSys sys;
+
+            System_Manager.GetInstance(this).TryGetSystem<InGameSys>(out sys, true);
+            sys.MyWorldCont = this;
+
+            //pillamos movimiento y metemos esto. 
+            //OJU! tenemos un problemilla con la mierda esta, pero bueno
+            MovementSystem movementSystem;
+            System_Manager.GetInstance(this).TryGetSystem<MovementSystem>(out movementSystem, true);
+            movementSystem.MyWorld = this;
         }
 
+
+        public bool IsTileBlocked(in int posX, in int posY){
+            Vector2 tilePos = WorldToTilePos(new Vector2(posX, posY));
+
+            if(tilePos.x < 0 || tilePos.x >= WIDTH || tilePos.y < 0 || tilePos.y >= HEIGHT){
+                Messages.Print(base.Name, "The tile at pos (" + posX + ", " + posY + ") is out of bonds");
+                return true;
+            }
+
+            if(MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y] == null){
+                return false;
+            }
+
+            
+            return MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y].IsBlocked;
+
+        }
+
+        public Vector2 WorldToTilePos(Vector2 pos){
+            pos /= _tilemap.CellSize;
+            pos.x = (int)pos.x;
+            pos.y = (int)pos.y;
+
+            return pos;
+        }
         private void RunTileMap()
         {
             //primero pillamos tilemap
