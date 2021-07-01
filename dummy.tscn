@@ -6,6 +6,7 @@
 [node name="Node2D" type="Node2D"]
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-position = Vector2( 204, 204 )
+position = Vector2( 36, 36 )
 
 [node name="WorldMap" parent="." instance=ExtResource( 2 )]
+FLOOR_NAME = "floors"

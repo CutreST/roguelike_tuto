@@ -40,7 +40,7 @@ namespace World{
 
             this.Tiles = new Tile[WIDTH, HEIGHT];
 
-            this.PopulateMap();
+            //this.PopulateMap();
         }
 
         /// <summary>
