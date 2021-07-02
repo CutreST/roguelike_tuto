@@ -4,7 +4,11 @@ using System.Collections.Generic;
 
 namespace World.Dungeon.Generators
 {
-
+    //OJU! habrá que cambiar un montón de estas mierdas.
+    //Por ejemplo los tamaños y demás.
+    //También deberemos cambiar la data, que esto (o clase intermedia) cree las tiles que queramos
+    //e, incluso, cree el mapa de una vez y así será más fácil comprobar las cosas (para los pasillos y demás)
+    //Y creo que esto es todo.
     public class SimpleGenerator
     {
         List<Room> _dungeonRooms;
