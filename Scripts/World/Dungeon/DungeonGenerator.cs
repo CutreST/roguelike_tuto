@@ -29,12 +29,12 @@ namespace World.Dungeon
         //this is a hack.
         //At some point we're going to diferentiate the tiles_logic and the tile_visual with types and so on,
         //so, bear with it just a little.
-        public (List<Vector2> floor, List<Vector2> walls) FloorAndWalls(){
+        public (List<Vector2> floor, List<Vector2> walls, List<Vector2> corridors) FloorAndWalls(){
             SimpleGenerator s = new SimpleGenerator();
             List<Vector2> walls = s.GetWalls();
             List<Vector2> floor = s.GetFloors();
-
-            return (floor, walls);
+            List<Vector2> corridors = s.GetCorridors();
+            return (floor, walls, corridors);
         }
 
      

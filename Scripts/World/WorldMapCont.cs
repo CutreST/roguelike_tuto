@@ -50,6 +50,9 @@ namespace World
         [Export]
         private readonly string FLOOR_NAME;
 
+        [Export]
+        private readonly string CORRIDOR_NAME;
+
         #endregion
 
         #region Godot Methods
@@ -99,7 +102,7 @@ namespace World
         private void SetMap()
         {
             //primero pillamos esto.
-            (List < Vector2 > floor, List < Vector2 > walls) = _generator.FloorAndWalls();
+            (List < Vector2 > floor, List < Vector2 > walls, List<Vector2> corridor) = _generator.FloorAndWalls();
             
             /*List<Vector2> walls = _generator.FloorAndWalls().walls;
             List<Vector2> floor = _generator.FloorAndWalls().floor;*/
@@ -107,10 +110,15 @@ namespace World
             //creamos tiles de collision y de suelo -> TODO esto tendrá su propio método
             this.CreateCollisionTiles(walls);
             this.CreateFloorTiles(floor);
+            
 
             //ahora pintamos
-            this.PaintWalls(walls);
-            this.PaintFloor(floor);
+            //this.PaintWalls(walls);
+            //this.PaintFloor(floor);
+            
+            this.PaintTiles(walls, WALL_NAME);
+            this.PaintTiles(floor, FLOOR_NAME);
+            this.PaintTiles(corridor, CORRIDOR_NAME);
         }
 
         private void CreateCollisionTiles(in List<Vector2> walls)
@@ -129,6 +137,14 @@ namespace World
             }
         }
 
+        private void PaintTiles(in List<Vector2> tiles, in string tileName){
+            int id = _tilemap.TileSet.FindTileByName(tileName);
+
+            for (int i = 0; i < tiles.Count; i++){
+                _tilemap.SetCell((int)tiles[i].x, (int)tiles[i].y, id);
+            }
+        }
+        [Obsolete]
         private void PaintWalls(in List<Vector2> walls)
         {
             int id = _tilemap.TileSet.FindTileByName(WALL_NAME);
@@ -139,6 +155,7 @@ namespace World
 
         }
 
+        [Obsolete]
         private void PaintFloor(in List<Vector2> floor)
         {
             int id = _tilemap.TileSet.FindTileByName(FLOOR_NAME);
@@ -156,19 +173,19 @@ namespace World
         /// <returns></returns>
         public bool IsTileBlocked(in int posX, in int posY)
         {
-            Vector2 tilePos = WorldToTilePos(new Vector2(posX, posY));
+            Vector2 tilePos = WorldToTilePos(new Vector2(posX, posY));            
 
             //out of bonds
-            if (tilePos.x < 0 || tilePos.x >= WIDTH || tilePos.y < 0 || tilePos.y >= HEIGHT)
+            if (tilePos.x < 0 || tilePos.x >= WIDTH || tilePos.y < 0 || tilePos.y >= HEIGHT )
             {
                 Messages.Print(base.Name, "The tile at pos (" + posX + ", " + posY + ") is out of bonds");
                 return true;
             }
 
-            //right now null = transitable, 'cause we didn't create a floor
+            //right now null = INtransitable, now there's a floor
             if (MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y] == null)
             {
-                return false;
+                return true;
             }
 
             //returns current tile is blocked

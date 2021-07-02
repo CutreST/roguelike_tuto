@@ -21,15 +21,20 @@ namespace MySystems
         private Vector2 tempPos;
 
 
-        public void Move(in MovementComp mov){
+        public void Move(in MovementComp mov)
+        {
             //en algún momento deberíamos enviar cualquier mierda
-            
+
             tempPos = mov.MyEntity.GlobalPosition + new Vector2(mov.TILE_WIDTH, mov.TILE_HEIGHT) * mov.Direction;
 
+            
             //check for null only for test prourposes (ex: test the movement outside the world an so on)
-            if(MyWorld == null || MyWorld.IsTileBlocked((int)tempPos.x, (int)tempPos.y) == false){
-                mov.MyEntity.GlobalPosition = tempPos;
+            if (MyWorld.IsTileBlocked((int)tempPos.x, (int)tempPos.y))
+            {
+                Messages.Print("nooooo, null or blocked");
+                return;
             }
+            mov.MyEntity.GlobalPosition = tempPos;
         }
 
 
@@ -37,7 +42,7 @@ namespace MySystems
         public override void OnEnterSystem(params object[] obj)
         {
             Messages.EnterSystem(this);
-            
+
         }
 
         public override void OnExitSystem(params object[] obj)

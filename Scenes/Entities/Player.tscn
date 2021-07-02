@@ -13,6 +13,8 @@ region = Rect2( 0, 96, 16, 24 )
 script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]
+z_index = 50
+z_as_relative = false
 texture = SubResource( 1 )
 
 [node name="InputComponent" type="Node" parent="."]
