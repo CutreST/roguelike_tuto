@@ -24,7 +24,7 @@ namespace World{
         /// <summary>
         /// 2d array of <see cref="Tile"/> that compose the map
         /// </summary>
-        public Tile[,] Tiles{ get; protected set; }
+        public Tile?[,] Tiles{ get; protected set; }
 
         /// <summary>
         /// Constructor.
@@ -38,10 +38,14 @@ namespace World{
             this.WIDTH = width;
             this.HEIGHT = height;
 
-            this.Tiles = new Tile[WIDTH, HEIGHT];
+            this.Tiles = new Tile?[WIDTH, HEIGHT];
 
             //this.PopulateMap();
         }
+
+        public void ClearMap(){
+            this.Tiles = new Tile?[WIDTH, HEIGHT];
+        }        
 
         /// <summary>
         /// Populates the map with some default options

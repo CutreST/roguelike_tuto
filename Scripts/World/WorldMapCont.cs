@@ -95,7 +95,8 @@ namespace World
 
                 //clear
                 _tilemap.Clear();
-                
+                MyWorld.ClearMap();
+
                 this.SetMap();
             }
         }
@@ -189,7 +190,7 @@ namespace World
             }
 
             //returns current tile is blocked
-            return MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y].IsBlocked;
+            return MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y].Value.IsBlocked;
 
         }
 
@@ -234,7 +235,7 @@ namespace World
             {
                 for (int y = 0; y < MyWorld.Tiles.GetLength(1); y++)
                 {
-                    if (MyWorld.Tiles[x, y] != null && MyWorld.Tiles[x, y].IsBlocked)
+                    if (MyWorld.Tiles[x, y] != null && MyWorld.Tiles[x, y].Value.IsBlocked)
                     {
                         _tilemap.SetCell(x, y, a);
                     }

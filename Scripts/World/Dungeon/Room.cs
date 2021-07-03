@@ -4,26 +4,25 @@ using System.Collections.Generic;
 
 namespace World.Dungeon
 {
-    public class Room
+    public struct Room
     {
-        public int TopLeftX { get; set; }
-        public int TopLeftY { get; set; }
+        //tuples, de momento usamos esto para no tener que implementar una estructura custom
+        //que, a la larga, será lo suyo
+        public (int X, int Y) TopLeft;
+        public (int X, int Y) BottomRight;      
 
-        public int BottomRightX { get; set; }
-        public int BottomRightY { get; set; }
+        public int Width { get => Mathf.Abs(BottomRight.X - TopLeft.X); }
+        public int Heigth { get => Mathf.Abs(BottomRight.Y - TopLeft.Y); }
 
-        public int Width { get => Mathf.Abs(BottomRightX - TopLeftX); }
-        public int Heigth { get => Mathf.Abs(BottomRightY - TopLeftY); }
-
-        public int CenterX { get => (int)Width / 2 + TopLeftX; }
-        public int CenterY { get => (int)Heigth / 2 + TopLeftY; }
+        public int CenterX { get => (int)Width / 2 + TopLeft.X; }
+        public int CenterY { get => (int)Heigth / 2 + TopLeft.Y; }
 
         public Room(in int topX, in int topY, in int bottomX, in int bottomY)
         {
-            this.TopLeftX = topX;
-            this.TopLeftY = topY;
-            this.BottomRightX = bottomX;
-            this.BottomRightY = bottomY;
+            this.TopLeft.X = topX;
+            this.TopLeft.Y = topY;
+            this.BottomRight.X = bottomX;
+            this.BottomRight.Y = bottomY;
         }
 
         //esto puede estar en el propio sistema de generación.
@@ -33,9 +32,9 @@ namespace World.Dungeon
         {
             List<Vector2> floors = new List<Vector2>();
 
-            for (int x = TopLeftX + 1; x < BottomRightX; x++)
+            for (int x = TopLeft.X + 1; x < BottomRight.X; x++)
             {
-                for (int y = TopLeftY + 1; y < BottomRightY; y++)
+                for (int y = TopLeft.Y + 1; y < BottomRight.Y; y++)
                 {
                     floors.Add(new Vector2(x, y));
                 }
@@ -48,19 +47,19 @@ namespace World.Dungeon
         {
             List<Vector2> walls = new List<Vector2>();
 
-            for (int y = TopLeftY; y <= BottomRightY; y++)
+            for (int y = TopLeft.Y; y <= BottomRight.Y; y++)
             {
-                if (y == TopLeftY || y == BottomRightY)
+                if (y == TopLeft.Y || y == BottomRight.Y)
                 {
-                    for (int x = TopLeftX; x <= BottomRightX; x++)
+                    for (int x = TopLeft.X; x <= BottomRight.X; x++)
                     {
                         walls.Add(new Vector2(x, y));
                     }
                 }
                 else
                 {
-                    walls.Add(new Vector2(TopLeftX, y));
-                    walls.Add(new Vector2(BottomRightX, y));
+                    walls.Add(new Vector2(TopLeft.X, y));
+                    walls.Add(new Vector2(BottomRight.X, y));
                 }
             }
             return walls;

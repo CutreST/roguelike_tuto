@@ -6,9 +6,14 @@ namespace World.Dungeon.Generators
 {
     //OJU! habrá que cambiar un montón de estas mierdas.
     //Por ejemplo los tamaños y demás.
-    //También deberemos cambiar la data, que esto (o clase intermedia) cree las tiles que queramos
+    //También deberemos cambiar la data, que esto (o clase intermedia) cree las tiles que queramos.
     //e, incluso, cree el mapa de una vez y así será más fácil comprobar las cosas (para los pasillos y demás)
     //Y creo que esto es todo.
+
+    //Bien, tenemos las tiles ya creadas, ahora vamos a cambiar esto para que en vez de dar vector2 al controlador de mapa esto devuelva
+    //array de tiles.
+
+    //Bueno, hemos cambiado las tiles, room y corridor por structs
     public class SimpleGenerator
     {
         List<Room> _dungeonRooms;
@@ -134,10 +139,18 @@ namespace World.Dungeon.Generators
         }
 
 
-
-        private void CreateRooms(in int rooms, in RandomNumberGenerator r)
+        /// <summary>
+        /// Creates x rooms in a simple way. We span a room in a random position between <see cref="PosX_Min"/> / <see cref="PosY_Min"/> & <see cref="PosX_Max"/> / <see cref="PosY_Max"/>
+        /// with a random size of <see cref="SIZE_MIN"/> & <see cref="SIZE_MAX"/> and, if the room collides with anothes, pass to the other
+        /// </summary>
+        /// <param name="rooms">the number of rooms to create</param>
+        /// <param name="r">the random generator</param>
+        private void CreateRooms(in int roomsNumber, in RandomNumberGenerator r)
         {
+            //randomize the generator
             r.Randomize();
+
+            //we need to create a **** point class with int
             int width;
             int height;
             int topX;
@@ -145,36 +158,42 @@ namespace World.Dungeon.Generators
 
             Room room;
 
-            for (int i = 0; i < rooms; i++)
+            for (int i = 0; i < roomsNumber; i++)
             {
+                //random measurements
                 width = r.RandiRange(SIZE_MIN, SIZE_MAX);
                 height = r.RandiRange(SIZE_MIN, SIZE_MAX);
                 topX = r.RandiRange(PosX_min, PosX_max);
                 topY = r.RandiRange(PosY_min, PosY_max - SIZE_MAX);
 
-                //creamos
+                //create the data
                 room = new Room(topX - WALL_SPACE, topY - WALL_SPACE, topX + width + WALL_SPACE, topY + height + WALL_SPACE);
 
-                //chekeamos, aún no 
+                //if there's collision with another room, pass and get another
                 if (IsRoomColliding(room))
                 {
                     i--;
                     continue;
                 }
 
-                //añadimos
+                //add to the list
                 _dungeonRooms.Add(room);
             }
         }
 
+        /// <summary>
+        /// Check's if a single room collides with another room in the list <see cref="_dungeonRooms"/>
+        /// </summary>
+        /// <param name="room"></param>
+        /// <returns></returns>
         private bool IsRoomColliding(in Room room)
         {
             for (int i = 0; i < _dungeonRooms.Count; i++)
             {
-                if (room.TopLeftX < _dungeonRooms[i].BottomRightX &&
-                    room.BottomRightX > _dungeonRooms[i].TopLeftX &&
-                    room.TopLeftY < _dungeonRooms[i].BottomRightY &&
-                    room.BottomRightY > _dungeonRooms[i].TopLeftY)
+                if (room.TopLeft.X < _dungeonRooms[i].BottomRight.X &&
+                    room.BottomRight.X > _dungeonRooms[i].TopLeft.Y &&
+                    room.TopLeft.Y < _dungeonRooms[i].BottomRight.Y &&
+                    room.BottomRight.Y > _dungeonRooms[i].TopLeft.Y)
                 {
                     Messages.Print("Simple Generator", "Collision detected");
                     return true;
@@ -185,23 +204,44 @@ namespace World.Dungeon.Generators
             return false;
         }
 
-
+        /// <summary>
+        /// Creates the corridors to join diferents <see cref="Room"/>. It uses a simple "L" shaped form
+        /// <remarks>
+        /// So, the algorithm is very simple. We check for the center of the origin and destination room, choose an axis
+        /// to begin to connect the origin room to destination and find a corner that is the center of the oposite axis. 
+        /// Doing this way assures an "L" shape.
+        /// 
+        ///   ##### 
+        ///   #...#
+        ///   #...OOOOOOOO -> corner
+        ///   #...#      O
+        ///   #####      O
+        ///              O
+        ///              O 
+        ///           ###O##
+        ///           #....#
+        ///           #....#
+        ///           ######
+        ///           
+        /// </remarks>
+        /// </summary>
+        /// <param name="r">random generator</param>
         private void CreateCorridors(in RandomNumberGenerator r)
         {
-            //randomizamos el generador
+            //randomize the generator
             r.Randomize();
-
-            //buscamos por cada habitación empezando por la segunda
+            Room origin;
+            Room dest;
+            
+            //every room connects with the previous room
             for (int i = 1; i < _dungeonRooms.Count; i++)
             {
-                //conectamos la habitacion con la anterior.
-                SimpleCorridor corridor;
-                Room origin = _dungeonRooms[i];
-                Room dest = _dungeonRooms[i - 1];
+                //get the origin and dest, easier to operate                
+                origin = _dungeonRooms[i];
+                dest = _dungeonRooms[i - 1];
                 Vector2 start, end, corner;
 
-
-                //50% lateral O vertical
+                //50% chances to begin the corridor in horizontal, vertical
                 if (r.RandiRange(0, 100) < 50)
                 {
                     this.CreateCorridorXAxis(origin, dest, out corner, out start);
@@ -213,38 +253,54 @@ namespace World.Dungeon.Generators
                     this.CreateCorridorYAxis(dest, origin, corner, out end);
                 }
 
-                Messages.Print("Origin: " + origin.TopLeftX + "/" + origin.TopLeftY);
-                Messages.Print("Destination: " + dest.TopLeftX + "/" + dest.TopLeftY);
+                //debug messages
+                Messages.Print("Origin: " + origin.TopLeft.X + "/" + origin.TopLeft.Y);
+                Messages.Print("Destination: " + dest.TopLeft.X + "/" + dest.TopLeft.Y);
                 Messages.Print("Center Origin: " + origin.CenterX);
                 Messages.Print("Center Destination: " + dest.CenterX);
 
+                //add the corridor to the list
                 _corridors.Add(new SimpleCorridor(start, end, corner));
             }
         }
 
+        /// <summary>
+        /// OJU! Change name!
+        /// </summary>
+        /// <param name="origin">The room that is the origin</param>
+        /// <param name="dest">The room that is the destination</param>
+        /// <param name="corner">The corner between the two rooms. OUT parameter</param>
+        /// <param name="point">The beggining point in the origin room. OUT parameter</param>
         private void CreateCorridorXAxis(in Room origin, in Room dest, out Vector2 corner, out Vector2 point)
         {
             if (origin.CenterX > dest.CenterX)
             {
-                point = new Vector2(origin.TopLeftX, origin.CenterY);
+                point = new Vector2(origin.TopLeft.X, origin.CenterY);
                 corner = new Vector2(dest.CenterX, origin.CenterY);
             }
             else
             {
-                point = new Vector2(origin.BottomRightX, origin.CenterY);
+                point = new Vector2(origin.BottomRight.X, origin.CenterY);
                 corner = new Vector2(dest.CenterX, origin.CenterY);
             }
         }
 
+        /// <summary>
+        /// OJU! Cambiar el nombre
+        /// </summary>
+        /// <param name="origin">The origin room</param>
+        /// <param name="dest">The destination room</param>
+        /// <param name="corner">The corner vbetween the two rooms</param>
+        /// <param name="point">The point in the origin room</param>
         private void CreateCorridorYAxis(in Room origin, in Room dest, in Vector2 corner, out Vector2 point)
         {
             if (origin.CenterY > dest.CenterY)
             {
-                point = new Vector2(corner.x, dest.BottomRightY);
+                point = new Vector2(corner.x, dest.BottomRight.Y);
             }
             else if (origin.CenterY < dest.CenterY)
             {
-                point = new Vector2(corner.x, dest.TopLeftY);
+                point = new Vector2(corner.x, dest.TopLeft.Y);
             }
             else
             {
@@ -254,7 +310,7 @@ namespace World.Dungeon.Generators
 
         private bool IsPointInRoom(in Vector2 point){
             foreach(Room room in _dungeonRooms){
-                if((room.TopLeftX + 1 <= point.x && room.BottomRightX - 1 >= point.x && room.TopLeftY + 1 <= point.y && room.BottomRightY - 1 >= point.y)){
+                if((room.TopLeft.X + 1 <= point.x && room.BottomRight.X - 1 >= point.x && room.TopLeft.Y + 1 <= point.y && room.BottomRight.Y - 1 >= point.y)){
                     return true;
                 }
             }
