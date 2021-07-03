@@ -2,49 +2,68 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
+using Base;
+
 namespace World.Dungeon.Generators
 {
-    //OJU! habrá que cambiar un montón de estas mierdas.
-    //Por ejemplo los tamaños y demás.
-    //También deberemos cambiar la data, que esto (o clase intermedia) cree las tiles que queramos.
-    //e, incluso, cree el mapa de una vez y así será más fácil comprobar las cosas (para los pasillos y demás)
-    //Y creo que esto es todo.
-
-    //Bien, tenemos las tiles ya creadas, ahora vamos a cambiar esto para que en vez de dar vector2 al controlador de mapa esto devuelva
-    //array de tiles.
-
-    //Bueno, hemos cambiado las tiles, room y corridor por structs
+    //Ok, Tile, Room and Simple corridor are now structs.
+    //Have to create a 2d tile? an pass it as the data.
+    //The generator is responsible of the 2d, i think.
     public class SimpleGenerator
     {
+        /// <summary>
+        /// A list of the dungeons <see cref="Room"/>
+        /// </summary>
         List<Room> _dungeonRooms;
-        List<SimpleCorridor> _corridors;
 
-        readonly int SIZE_MIN = 2;
-        readonly int SIZE_MAX = 6;
+        /// <summary>
+        /// A list of the dungeons <see cref="SimpleCorridor"/>
+        /// </summary>
+        List<SimpleCorridor> _corridors;        
 
         readonly int WALL_SPACE = 1;
 
         const int WALL_NUMBER = 6;
 
-        public int PosX_max = 56;
-        public int PosY_max = 31;
+        /// <summary>
+        /// The limits of the roomsize
+        /// </summary>
+        private (int min, int max) _roomSize;       
+        
+        /// <summary>
+        /// the mapsize
+        /// </summary>
+        private MyPoint _mapSize;
 
-        public int PosX_min = 1;
-        public int PosY_min = 1;
+        /// <summary>
+        /// the min pos of the map.
+        /// Selected 1-1 for the tile wall.
+        /// </summary>
+        private MyPoint _minPos = new MyPoint(1, 1);
+
+
+        public SimpleGenerator(in int minSizeRoom, in int maxSizeRoom, in MyPoint mapSize){
+            this._roomSize = (minSizeRoom, maxSizeRoom);
+            this._mapSize = mapSize;
+        }   
 
         public SimpleGenerator()
         {
+            //default setting to test
+            this._roomSize = (2, 6);
+            _mapSize = new MyPoint(61, 31);
+
             this._corridors = new List<SimpleCorridor>();
             this._dungeonRooms = new List<Room>();
             RandomNumberGenerator r = new RandomNumberGenerator();
 
+            //oju!!! esto irá en otro lado.
+            
             //primero creamos las habitaciones
             this.CreateRooms(WALL_NUMBER, r);
 
-
             //ahora conectamos
             this.CreateCorridors(r);
-
 
             //pasamos una lista con las cosas
 
@@ -84,8 +103,6 @@ namespace World.Dungeon.Generators
             //lo ponemos aquí, habrá que mejorarlo
             foreach (SimpleCorridor c in _corridors)
             {                
-                
-
                 if (c.Corner.x > c.Start.x)
                 {
                     for (int x = (int)c.Corner.x; x >= c.Start.x; x--)
@@ -93,8 +110,7 @@ namespace World.Dungeon.Generators
                         point = new Vector2(x, c.Corner.y);    
                         if(IsPointInRoom(point) == false){
                             corridors.Add(point);
-                        }                    
-                        
+                        }                             
                     }
                 }
                 else
@@ -104,8 +120,7 @@ namespace World.Dungeon.Generators
                         point = new Vector2(x, c.Corner.y);
                         if(IsPointInRoom(point) == false){
                             corridors.Add(point);
-                        }
-                        
+                        }                       
                     }
                 }
 
@@ -116,8 +131,7 @@ namespace World.Dungeon.Generators
                         point = new Vector2(c.Corner.x, y);
                         if(IsPointInRoom(point) == false){
                             corridors.Add(point);
-                        }
-                        
+                        }                        
                     }
                 }
                 else
@@ -130,14 +144,10 @@ namespace World.Dungeon.Generators
                         }
                         
                     }
-                }
-
-                
+                }                
             }
-
             return corridors;
         }
-
 
         /// <summary>
         /// Creates x rooms in a simple way. We span a room in a random position between <see cref="PosX_Min"/> / <see cref="PosY_Min"/> & <see cref="PosX_Max"/> / <see cref="PosY_Max"/>
@@ -161,10 +171,10 @@ namespace World.Dungeon.Generators
             for (int i = 0; i < roomsNumber; i++)
             {
                 //random measurements
-                width = r.RandiRange(SIZE_MIN, SIZE_MAX);
-                height = r.RandiRange(SIZE_MIN, SIZE_MAX);
-                topX = r.RandiRange(PosX_min, PosX_max);
-                topY = r.RandiRange(PosY_min, PosY_max - SIZE_MAX);
+                width = r.RandiRange(_roomSize.min, _roomSize.max);
+                height = r.RandiRange(_roomSize.min, _roomSize.max);
+                topX = r.RandiRange(PosX_min, _mapSize.X - _roomSize.max);
+                topY = r.RandiRange(PosY_min, _mapSize.Y - _roomSize.max);
 
                 //create the data
                 room = new Room(topX - WALL_SPACE, topY - WALL_SPACE, topX + width + WALL_SPACE, topY + height + WALL_SPACE);
