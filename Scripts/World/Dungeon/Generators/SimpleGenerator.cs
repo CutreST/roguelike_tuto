@@ -41,7 +41,11 @@ namespace World.Dungeon.Generators
         /// </summary>
         private MyPoint _minPos = new MyPoint(1, 1);
 
-
+        //ok, ahora creo que las tiles no las debe hacer esto, sino el controlador.
+        //sin embargo, cómo sabe el controlador qué mierda hay?
+        //quizás haré un diccionario tipo-lista y el controlador decida.
+        //Así, por ejemplo, si queremos meter diferentes tiles en otros generadores 
+        //no tenemos que ir haciendo mierdas, bueno, hay que pensarlo mu' bien.
         public SimpleGenerator(in int minSizeRoom, in int maxSizeRoom, in MyPoint mapSize){
             this._roomSize = (minSizeRoom, maxSizeRoom);
             this._mapSize = mapSize;
@@ -58,7 +62,7 @@ namespace World.Dungeon.Generators
             RandomNumberGenerator r = new RandomNumberGenerator();
 
             //oju!!! esto irá en otro lado.
-            
+
             //primero creamos las habitaciones
             this.CreateRooms(WALL_NUMBER, r);
 
@@ -76,7 +80,6 @@ namespace World.Dungeon.Generators
             foreach (Room r in _dungeonRooms)
             {
                 walls.AddRange(r.GetWallsPositions());
-
             }
 
             return walls;
@@ -89,17 +92,14 @@ namespace World.Dungeon.Generators
             {
                 floor.AddRange(r.GetFloorPositions());
             }
-
-
-
             return floor;
         }
 
         public List<Vector2> GetCorridors()
         {
-
             List<Vector2> corridors = new List<Vector2>();
             Vector2 point;
+
             //lo ponemos aquí, habrá que mejorarlo
             foreach (SimpleCorridor c in _corridors)
             {                
@@ -173,8 +173,8 @@ namespace World.Dungeon.Generators
                 //random measurements
                 width = r.RandiRange(_roomSize.min, _roomSize.max);
                 height = r.RandiRange(_roomSize.min, _roomSize.max);
-                topX = r.RandiRange(PosX_min, _mapSize.X - _roomSize.max);
-                topY = r.RandiRange(PosY_min, _mapSize.Y - _roomSize.max);
+                topX = r.RandiRange(_minPos.X, _mapSize.X - _roomSize.max);
+                topY = r.RandiRange(_minPos.Y, _mapSize.Y - _roomSize.max);
 
                 //create the data
                 room = new Room(topX - WALL_SPACE, topY - WALL_SPACE, topX + width + WALL_SPACE, topY + height + WALL_SPACE);
@@ -318,6 +318,13 @@ namespace World.Dungeon.Generators
             }
         }
 
+
+        /// <summary>
+        /// Checks if a point is inside any room of the <see cref="_dungeonRooms"/>.
+        /// OJU! It looks for each room of the dungeon.
+        /// </summary>
+        /// <param name="point">The point that we want to check</param>
+        /// <returns>Is the point in any room?</returns>
         private bool IsPointInRoom(in Vector2 point){
             foreach(Room room in _dungeonRooms){
                 if((room.TopLeft.X + 1 <= point.x && room.BottomRight.X - 1 >= point.x && room.TopLeft.Y + 1 <= point.y && room.BottomRight.Y - 1 >= point.y)){
