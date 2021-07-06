@@ -9,7 +9,7 @@ namespace World{
     /// <summary>
     /// The worldmap. It has a 2d array of <see cref="Tile"/>
     /// </summary>
-    public class WorldMap{
+    public struct WorldMap{
 
         /// <summary>
         /// The witdh of the world
@@ -24,7 +24,7 @@ namespace World{
         /// <summary>
         /// 2d array of <see cref="Tile"/> that compose the map
         /// </summary>
-        public Tile?[,] Tiles{ get; protected set; }
+        public Tile?[,] Tiles;
 
         /// <summary>
         /// Constructor.
@@ -41,6 +41,12 @@ namespace World{
             this.Tiles = new Tile?[WIDTH, HEIGHT];
 
             //this.PopulateMap();
+        }
+
+        public WorldMap(in Tile?[,] tiles){
+            this.Tiles = tiles;
+            this.WIDTH = tiles.GetLength(0);
+            this.HEIGHT = tiles.GetLength(1);
         }
 
         public void ClearMap(){

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using World;
 
 using Base;
 
@@ -19,17 +20,17 @@ namespace World.Dungeon.Generators
         /// <summary>
         /// A list of the dungeons <see cref="SimpleCorridor"/>
         /// </summary>
-        List<SimpleCorridor> _corridors;        
+        List<SimpleCorridor> _corridors;
 
         readonly int WALL_SPACE = 1;
 
-        const int WALL_NUMBER = 6;
+        const int WALL_NUMBER = 5;
 
         /// <summary>
         /// The limits of the roomsize
         /// </summary>
-        private (int min, int max) _roomSize;       
-        
+        private (int min, int max) _roomSize;
+
         /// <summary>
         /// the mapsize
         /// </summary>
@@ -41,112 +42,156 @@ namespace World.Dungeon.Generators
         /// </summary>
         private MyPoint _minPos = new MyPoint(1, 1);
 
+        private Tile?[,] _tiles;
+
         //ok, ahora creo que las tiles no las debe hacer esto, sino el controlador.
         //sin embargo, cómo sabe el controlador qué mierda hay?
         //quizás haré un diccionario tipo-lista y el controlador decida.
         //Así, por ejemplo, si queremos meter diferentes tiles en otros generadores 
         //no tenemos que ir haciendo mierdas, bueno, hay que pensarlo mu' bien.
-        public SimpleGenerator(in int minSizeRoom, in int maxSizeRoom, in MyPoint mapSize){
+        public SimpleGenerator(in int minSizeRoom, in int maxSizeRoom, in MyPoint mapSize)
+        {
             this._roomSize = (minSizeRoom, maxSizeRoom);
             this._mapSize = mapSize;
-        }   
+            this._tiles = new Tile?[mapSize.X, mapSize.Y];
+        }
 
-        public SimpleGenerator()
+        public ref Tile?[,] GetTiles(out Vector2 pos)
         {
-            //default setting to test
-            this._roomSize = (2, 6);
-            _mapSize = new MyPoint(61, 31);
-
-            this._corridors = new List<SimpleCorridor>();
-            this._dungeonRooms = new List<Room>();
             RandomNumberGenerator r = new RandomNumberGenerator();
-
-            //oju!!! esto irá en otro lado.
 
             //primero creamos las habitaciones
             this.CreateRooms(WALL_NUMBER, r);
 
             //ahora conectamos
             this.CreateCorridors(r);
+            pos = this.GetInitPos();
 
-            //pasamos una lista con las cosas
-
-            //TODO: hacer diferentes tipos de algo
+            return ref this._tiles;
         }
 
-        public List<Vector2> GetWalls()
-        {
-            List<Vector2> walls = new List<Vector2>();
-            foreach (Room r in _dungeonRooms)
-            {
-                walls.AddRange(r.GetWallsPositions());
-            }
-
-            return walls;
+        public Vector2 GetInitPos(){
+            return new Vector2(_dungeonRooms[0].CenterX, _dungeonRooms[0].CenterY);
         }
 
-        public List<Vector2> GetFloors()
+
+        public SimpleGenerator()
         {
-            List<Vector2> floor = new List<Vector2>();
-            foreach (Room r in _dungeonRooms)
-            {
-                floor.AddRange(r.GetFloorPositions());
-            }
-            return floor;
+            //default setting to test
+            this._roomSize = (6, 16);
+            _mapSize = new MyPoint(61, 31);
+
+            this._corridors = new List<SimpleCorridor>();
+            this._dungeonRooms = new List<Room>();
+            _tiles = new Tile?[_mapSize.X, _mapSize.Y];
         }
 
-        public List<Vector2> GetCorridors()
+        private void CorridorToMap(in SimpleCorridor corridor, in Room origin, in Room dest)
         {
-            List<Vector2> corridors = new List<Vector2>();
             Vector2 point;
+            List<Vector2> corrPoints = new List<Vector2>();
 
-            //lo ponemos aquí, habrá que mejorarlo
-            foreach (SimpleCorridor c in _corridors)
-            {                
-                if (c.Corner.x > c.Start.x)
+            if (corridor.Corner.x > corridor.Start.x)
+            {
+                for (int x = (int)corridor.Corner.x; x >= corridor.Start.x; x--)
                 {
-                    for (int x = (int)c.Corner.x; x >= c.Start.x; x--)
-                    {
-                        point = new Vector2(x, c.Corner.y);    
-                        if(IsPointInRoom(point) == false){
-                            corridors.Add(point);
-                        }                             
-                    }
-                }
-                else
-                {
-                    for (int x = (int)c.Corner.x; x <= c.Start.x; x++)
-                    {
-                        point = new Vector2(x, c.Corner.y);
-                        if(IsPointInRoom(point) == false){
-                            corridors.Add(point);
-                        }                       
-                    }
-                }
+                    point = new Vector2(x, corridor.Corner.y);
+                    _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
+                    corrPoints.Add(point);
 
-                if (c.Corner.y < c.End.y)
-                {
-                    for (int y = (int)c.Corner.y; y <= c.End.y; y++)
+                    /*
+                    if (IsPointInRoom(point) == false)
                     {
-                        point = new Vector2(c.Corner.x, y);
-                        if(IsPointInRoom(point) == false){
-                            corridors.Add(point);
-                        }                        
+                        _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
+                        corrPoints.Add(point);
                     }
-                }
-                else
-                {
-                    for (int y = (int)c.Corner.y; y >= c.End.y; y--)
+                    else
                     {
-                        point = new Vector2(c.Corner.x, y);
-                        if(IsPointInRoom(point) == false){
-                            corridors.Add(point);
+                        if (IsPointInRoom(point, dest)){
+                            _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.DOOR, true);
                         }
-                        
-                    }
-                }                
+                    }*/
+                }
             }
-            return corridors;
+            else
+            {
+                for (int x = (int)corridor.Corner.x; x <= corridor.Start.x; x++)
+                {
+                    point = new Vector2(x, corridor.Corner.y);
+                    _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
+                    corrPoints.Add(point);
+
+                    /*if (IsPointInRoom(point) == false)
+                    {
+                        _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
+                        corrPoints.Add(point);
+                    }*/
+
+                }
+            }
+
+            if (corridor.Corner.y < corridor.End.y)
+            {
+                for (int y = (int)corridor.Corner.y; y <= corridor.End.y; y++)
+                {
+                    point = new Vector2(corridor.Corner.x, y);
+                    _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
+                    corrPoints.Add(point);
+
+                    /*if (IsPointInRoom(point) == false)
+                    {
+                        _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
+                        corrPoints.Add(point);
+                    }*/
+                }
+            }
+            else
+            {
+                for (int y = (int)corridor.Corner.y; y >= corridor.End.y; y--)
+                {
+                    point = new Vector2(corridor.Corner.x, y);
+
+                    _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
+                    corrPoints.Add(point);
+
+                    /*if (IsPointInRoom(point) == false)
+                    {
+                        _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
+                        corrPoints.Add(point);
+                    }*/
+                }
+            }
+
+            //ahora, una vez hemos metido todos los puntos, vamos a mirar suelo x suelo y chekear vecinos para meter paredes
+            foreach (Vector2 v in corrPoints)
+            {
+                this.CheckNeigbour(v, corrPoints);
+            }
+
+            //y, en teoria,
+        }
+
+        private void CheckNeigbour(in Vector2 point, in List<Vector2> lisPoints)
+        {
+            //primero miramos los 8 puntos 
+            const int xNeig = 1;
+            const int yNeig = 1;
+
+            for (int x = (int)point.x - xNeig; x <= (int)point.x + xNeig; x++)
+            {
+                for (int y = (int)point.y - yNeig; y <= (int)point.y + yNeig; y++)
+                {
+                    if(x == point.x && y == point.y){
+                        continue;
+                    }
+
+                    //si es nullo o bien tiene suelo y pertenece a una habitación, metemos pared.
+                    if (_tiles[x, y].HasValue == false || (_tiles[x, y].Value.MyType == Tile.TileType.FLOOR && (IsPointInRoom(point) && IsPointInList(point, lisPoints) == false)))
+                    {
+                        _tiles[x, y] = new Tile(Tile.TileType.WALL, true);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -173,11 +218,11 @@ namespace World.Dungeon.Generators
                 //random measurements
                 width = r.RandiRange(_roomSize.min, _roomSize.max);
                 height = r.RandiRange(_roomSize.min, _roomSize.max);
-                topX = r.RandiRange(_minPos.X, _mapSize.X - _roomSize.max);
-                topY = r.RandiRange(_minPos.Y, _mapSize.Y - _roomSize.max);
+                topX = r.RandiRange(0, _mapSize.X - _roomSize.max - 1);
+                topY = r.RandiRange(0, _mapSize.Y - _roomSize.max - 1);
 
                 //create the data
-                room = new Room(topX - WALL_SPACE, topY - WALL_SPACE, topX + width + WALL_SPACE, topY + height + WALL_SPACE);
+                room = new Room(topX, topY, topX + width, topY + height);
 
                 //if there's collision with another room, pass and get another
                 if (IsRoomColliding(room))
@@ -188,6 +233,34 @@ namespace World.Dungeon.Generators
 
                 //add to the list
                 _dungeonRooms.Add(room);
+            }
+
+            this.RoomToMap(_dungeonRooms);
+        }
+
+        private void RoomToMap(List<Room> dungeonRooms)
+        {
+            List<Vector2> temp;
+
+            foreach (Room r in dungeonRooms)
+            {
+                //get the walls for each room and put onto the map
+                temp = r.GetWallsPositions();
+
+                for (int i = 0; i < temp.Count; i++)
+                {
+                    _tiles[(int)temp[i].x, (int)temp[i].y] = new Tile(Tile.TileType.WALL, true);
+                }
+
+                //get the floor for each room and put onto the map
+                temp.Clear();
+                temp = r.GetFloorPositions();
+
+                for (int i = 0; i < temp.Count; i++)
+                {
+                    _tiles[(int)temp[i].x, (int)temp[i].y] = new Tile(Tile.TileType.FLOOR, true);
+                }
+
             }
         }
 
@@ -201,7 +274,7 @@ namespace World.Dungeon.Generators
             for (int i = 0; i < _dungeonRooms.Count; i++)
             {
                 if (room.TopLeft.X < _dungeonRooms[i].BottomRight.X &&
-                    room.BottomRight.X > _dungeonRooms[i].TopLeft.Y &&
+                    room.BottomRight.X > _dungeonRooms[i].TopLeft.X &&
                     room.TopLeft.Y < _dungeonRooms[i].BottomRight.Y &&
                     room.BottomRight.Y > _dungeonRooms[i].TopLeft.Y)
                 {
@@ -242,7 +315,7 @@ namespace World.Dungeon.Generators
             r.Randomize();
             Room origin;
             Room dest;
-            
+
             //every room connects with the previous room
             for (int i = 1; i < _dungeonRooms.Count; i++)
             {
@@ -268,6 +341,9 @@ namespace World.Dungeon.Generators
                 Messages.Print("Destination: " + dest.TopLeft.X + "/" + dest.TopLeft.Y);
                 Messages.Print("Center Origin: " + origin.CenterX);
                 Messages.Print("Center Destination: " + dest.CenterX);
+
+                SimpleCorridor s = new SimpleCorridor(start, end, corner);
+                this.CorridorToMap(s, origin, dest);
 
                 //add the corridor to the list
                 _corridors.Add(new SimpleCorridor(start, end, corner));
@@ -325,12 +401,35 @@ namespace World.Dungeon.Generators
         /// </summary>
         /// <param name="point">The point that we want to check</param>
         /// <returns>Is the point in any room?</returns>
-        private bool IsPointInRoom(in Vector2 point){
-            foreach(Room room in _dungeonRooms){
-                if((room.TopLeft.X + 1 <= point.x && room.BottomRight.X - 1 >= point.x && room.TopLeft.Y + 1 <= point.y && room.BottomRight.Y - 1 >= point.y)){
+        private bool IsPointInRoom(in Vector2 point)
+        {
+            foreach (Room room in _dungeonRooms)
+            {
+                if ((room.TopLeft.X + 1 <= point.x && room.BottomRight.X - 1 >= point.x && room.TopLeft.Y + 1 <= point.y && room.BottomRight.Y - 1 >= point.y))
+                {
                     return true;
                 }
             }
+            return false;
+        }
+
+        private bool IsPointInList(in Vector2 point, in List<Vector2> listPoints){
+
+            foreach(Vector2 v in listPoints){
+                if(v.x == point.x && v.y == point.y){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool IsPointInRoom(in Vector2 point, in Room room)
+        {
+            if ((room.TopLeft.X + 1 <= point.x && room.BottomRight.X - 1 >= point.x && room.TopLeft.Y + 1 <= point.y && room.BottomRight.Y - 1 >= point.y))
+            {
+                return true;
+            }
+
             return false;
         }
 

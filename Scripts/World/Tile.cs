@@ -47,7 +47,9 @@ namespace World
                         break;
 
                     case TileType.DOOR:
-                        throw new NotImplementedException();
+                        IsBlocked = true;
+                        IsSightBloked = true;
+                        break;
                 }
             }
         }

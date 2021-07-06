@@ -53,7 +53,15 @@ namespace World
         [Export]
         private readonly string CORRIDOR_NAME;
 
+        [Export]
+        private readonly string DOOR_NAME;
+
+        [Export]
+        private readonly string PLAYER_NAME;
+
         #endregion
+
+        private Entities.Entity _player;
 
         #region Godot Methods
         public override void _EnterTree()
@@ -83,8 +91,16 @@ namespace World
 
             //metemos generator para testear
             _generator = new DungeonGenerator(this);
+
+            //buscamos al player
+            _player = base.GetTree().Root.TryGetFromChild_Rec<Entities.Entity>(PLAYER_NAME);
+
+
+            //rellenamos el diccionario
             this.SetMap();
         }
+
+       
 
         #endregion
         const string SPACE_ACTION = "ui_select";
@@ -100,26 +116,56 @@ namespace World
                 this.SetMap();
             }
         }
+
         private void SetMap()
         {
-            //primero pillamos esto.
-            (List < Vector2 > floor, List < Vector2 > walls, List<Vector2> corridor) = _generator.FloorAndWalls();
-            
-            /*List<Vector2> walls = _generator.FloorAndWalls().walls;
-            List<Vector2> floor = _generator.FloorAndWalls().floor;*/
+            Vector2 pos;
 
-            //creamos tiles de collision y de suelo -> TODO esto tendrá su propio método
-            this.CreateCollisionTiles(walls);
-            this.CreateFloorTiles(floor);
-            
+            this.MyWorld = new WorldMap(this._generator.GetTiles(out pos));
+            this.PaintMap();
+
+
+            _player.GlobalPosition = new Vector2(pos.x * 24 + 12, pos.y * 24 + 12);
 
             //ahora pintamos
             //this.PaintWalls(walls);
             //this.PaintFloor(floor);
-            
-            this.PaintTiles(walls, WALL_NAME);
+
+            /*this.PaintTiles(walls, WALL_NAME);
             this.PaintTiles(floor, FLOOR_NAME);
-            this.PaintTiles(corridor, CORRIDOR_NAME);
+            this.PaintTiles(corridor, CORRIDOR_NAME);*/
+        }
+
+        private void PaintMap(){
+            Tile? currentTile;
+            int id;
+            for (int x = 0; x < MyWorld.WIDTH; x++){
+                for (int y = 0; y < MyWorld.HEIGHT; y++){
+                    currentTile = MyWorld.Tiles[x, y];
+                    if(currentTile.HasValue){
+                        switch(MyWorld.Tiles[x,y].Value.MyType){
+                            case Tile.TileType.WALL:
+                                id = 1;
+                                break;
+
+                            case Tile.TileType.FLOOR:
+                                id = 2;
+                                break;
+
+                            case Tile.TileType.DOOR:
+                                id = 4;
+                                break;
+
+                            default:
+                                id = 3;
+                                break;
+                        }
+
+                        _tilemap.SetCell(x, y, id);
+                    }
+                    
+                }
+            }
         }
 
         private void CreateCollisionTiles(in List<Vector2> walls)
