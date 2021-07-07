@@ -70,7 +70,8 @@ namespace World.Dungeon.Generators
             return ref this._tiles;
         }
 
-        public Vector2 GetInitPos(){
+        public Vector2 GetInitPos()
+        {
             return new Vector2(_dungeonRooms[0].CenterX, _dungeonRooms[0].CenterY);
         }
 
@@ -89,28 +90,16 @@ namespace World.Dungeon.Generators
         private void CorridorToMap(in SimpleCorridor corridor, in Room origin, in Room dest)
         {
             Vector2 point;
-            List<Vector2> corrPoints = new List<Vector2>();
+            List<Vector2> corrPoints = new List<Vector2>();            
 
             if (corridor.Corner.x > corridor.Start.x)
             {
+                //TODO: create a method for the operations in here 
                 for (int x = (int)corridor.Corner.x; x >= corridor.Start.x; x--)
                 {
                     point = new Vector2(x, corridor.Corner.y);
                     _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
-
-                    /*
-                    if (IsPointInRoom(point) == false)
-                    {
-                        _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
-                        corrPoints.Add(point);
-                    }
-                    else
-                    {
-                        if (IsPointInRoom(point, dest)){
-                            _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.DOOR, true);
-                        }
-                    }*/
                 }
             }
             else
@@ -120,13 +109,6 @@ namespace World.Dungeon.Generators
                     point = new Vector2(x, corridor.Corner.y);
                     _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
-
-                    /*if (IsPointInRoom(point) == false)
-                    {
-                        _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
-                        corrPoints.Add(point);
-                    }*/
-
                 }
             }
 
@@ -137,12 +119,6 @@ namespace World.Dungeon.Generators
                     point = new Vector2(corridor.Corner.x, y);
                     _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
-
-                    /*if (IsPointInRoom(point) == false)
-                    {
-                        _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
-                        corrPoints.Add(point);
-                    }*/
                 }
             }
             else
@@ -153,12 +129,6 @@ namespace World.Dungeon.Generators
 
                     _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
-
-                    /*if (IsPointInRoom(point) == false)
-                    {
-                        _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
-                        corrPoints.Add(point);
-                    }*/
                 }
             }
 
@@ -168,7 +138,9 @@ namespace World.Dungeon.Generators
                 this.CheckNeigbour(v, corrPoints);
             }
 
-            //y, en teoria,
+            //for debug pourposes, end and start are a door
+            _tiles[(int)corridor.Start.x, (int)corridor.Start.y] = new Tile(Tile.TileType.DOOR, true);
+            _tiles[(int)corridor.End.x, (int)corridor.End.y] = new Tile(Tile.TileType.DOOR, true);
         }
 
         private void CheckNeigbour(in Vector2 point, in List<Vector2> lisPoints)
@@ -181,7 +153,8 @@ namespace World.Dungeon.Generators
             {
                 for (int y = (int)point.y - yNeig; y <= (int)point.y + yNeig; y++)
                 {
-                    if(x == point.x && y == point.y){
+                    if (x == point.x && y == point.y)
+                    {
                         continue;
                     }
 
@@ -384,13 +357,9 @@ namespace World.Dungeon.Generators
             {
                 point = new Vector2(corner.x, dest.BottomRight.Y);
             }
-            else if (origin.CenterY < dest.CenterY)
-            {
-                point = new Vector2(corner.x, dest.TopLeft.Y);
-            }
             else
             {
-                point = new Vector2(corner.x, dest.CenterY);
+                point = new Vector2(corner.x, dest.TopLeft.Y);
             }
         }
 
@@ -413,10 +382,13 @@ namespace World.Dungeon.Generators
             return false;
         }
 
-        private bool IsPointInList(in Vector2 point, in List<Vector2> listPoints){
+        private bool IsPointInList(in Vector2 point, in List<Vector2> listPoints)
+        {
 
-            foreach(Vector2 v in listPoints){
-                if(v.x == point.x && v.y == point.y){
+            foreach (Vector2 v in listPoints)
+            {
+                if (v.x == point.x && v.y == point.y)
+                {
                     return true;
                 }
             }
