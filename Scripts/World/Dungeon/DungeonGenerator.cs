@@ -6,9 +6,12 @@ using World;
 
 namespace World.Dungeon
 {
-    //creo que esto lo podemos poner como un sistema, pero bueno.
-    //también habría que cambiar el nombre, porque no es un generador o bien sí,
-    //cambiar el otro
+    /// <summary>
+    /// This class is the glue between the <see cref="WorldMapController"/> and all the generators.
+    /// </summary>
+    /// <remarks>
+    /// To THINK: flaw in design, is really needed this class?
+    /// </remarks>
     public class DungeonGenerator
     {
        

@@ -7,10 +7,19 @@ using Base;
 
 namespace World.Dungeon.Generators
 {
-    //Ok, Tile, Room and Simple corridor are now structs.
-    //Have to create a 2d tile? an pass it as the data.
-    //The generator is responsible of the 2d, i think.
-    public class SimpleGenerator
+    /// <summary>
+    /// A simple dungeon generator. 
+    /// </summary>
+    /// <remarks>
+    /// The algorithms works but is not the fastest I can think. It needs some polishment. It spawns a fixed
+    /// amount of rooms an connects them with an "L" shaped corridor. There's a problem with the door but, instead
+    /// of trying to fix it's better to use another generator. TODO: reference to generator.
+    /// <para>
+    /// The best way to use this generators is to cramp a lot of rooms, intead of creating a dungeon with long corridors and
+    /// differents rooms, I think this looks best with all narrow and, well, doesn't need rooms this way.
+    /// </para>
+    /// </remarks>
+    public class SimpleGenerator : BaseGenerator
     {
         /// <summary>
         /// A list of the dungeons <see cref="Room"/>
@@ -22,9 +31,15 @@ namespace World.Dungeon.Generators
         /// </summary>
         List<SimpleCorridor> _corridors;
 
+        /// <summary>
+        /// Tile wall space
+        /// </summary>
         readonly int WALL_SPACE = 1;
 
-        const int WALL_NUMBER = 5;
+        /// <summary>
+        /// The max number of rooms
+        /// </summary>
+        readonly int WALL_NUMBER = 6;
 
         /// <summary>
         /// The limits of the roomsize
@@ -42,21 +57,22 @@ namespace World.Dungeon.Generators
         /// </summary>
         private MyPoint _minPos = new MyPoint(1, 1);
 
-        private Tile?[,] _tiles;
-
-        //ok, ahora creo que las tiles no las debe hacer esto, sino el controlador.
-        //sin embargo, cómo sabe el controlador qué mierda hay?
-        //quizás haré un diccionario tipo-lista y el controlador decida.
-        //Así, por ejemplo, si queremos meter diferentes tiles en otros generadores 
-        //no tenemos que ir haciendo mierdas, bueno, hay que pensarlo mu' bien.
-        public SimpleGenerator(in int minSizeRoom, in int maxSizeRoom, in MyPoint mapSize)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="minSizeRoom">Rooms minimum size</param>
+        /// <param name="maxSizeRoom">Rooms max sie</param>
+        /// <param name="maxRoom">Max number of rooms</param>
+        /// <param name="mapSize">The size of the map</param>
+        public SimpleGenerator(in int minSizeRoom, in int maxSizeRoom, in int maxRoom, in MyPoint mapSize)
         {
             this._roomSize = (minSizeRoom, maxSizeRoom);
             this._mapSize = mapSize;
-            this._tiles = new Tile?[mapSize.X, mapSize.Y];
+            this.Tiles = new Tile?[mapSize.X, mapSize.Y];
+            this.WALL_NUMBER = maxRoom;
         }
 
-        public ref Tile?[,] GetTiles(out Vector2 pos)
+        public override ref Tile?[,] GetTiles(out Vector2 pos)
         {
             RandomNumberGenerator r = new RandomNumberGenerator();
 
@@ -67,7 +83,7 @@ namespace World.Dungeon.Generators
             this.CreateCorridors(r);
             pos = this.GetInitPos();
 
-            return ref this._tiles;
+            return ref this.Tiles;
         }
 
         public Vector2 GetInitPos()
@@ -79,18 +95,18 @@ namespace World.Dungeon.Generators
         public SimpleGenerator()
         {
             //default setting to test
-            this._roomSize = (6, 16);
-            _mapSize = new MyPoint(61, 31);
+            this._roomSize = (4, 8);
+            _mapSize = new MyPoint(61, 30);
 
             this._corridors = new List<SimpleCorridor>();
             this._dungeonRooms = new List<Room>();
-            _tiles = new Tile?[_mapSize.X, _mapSize.Y];
+            Tiles = new Tile?[_mapSize.X, _mapSize.Y];
         }
 
         private void CorridorToMap(in SimpleCorridor corridor, in Room origin, in Room dest)
         {
             Vector2 point;
-            List<Vector2> corrPoints = new List<Vector2>();            
+            List<Vector2> corrPoints = new List<Vector2>();
 
             if (corridor.Corner.x > corridor.Start.x)
             {
@@ -98,7 +114,7 @@ namespace World.Dungeon.Generators
                 for (int x = (int)corridor.Corner.x; x >= corridor.Start.x; x--)
                 {
                     point = new Vector2(x, corridor.Corner.y);
-                    _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
+                    Tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
                 }
             }
@@ -107,7 +123,7 @@ namespace World.Dungeon.Generators
                 for (int x = (int)corridor.Corner.x; x <= corridor.Start.x; x++)
                 {
                     point = new Vector2(x, corridor.Corner.y);
-                    _tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
+                    Tiles[(int)point.x, (int)corridor.Corner.y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
                 }
             }
@@ -117,7 +133,7 @@ namespace World.Dungeon.Generators
                 for (int y = (int)corridor.Corner.y; y <= corridor.End.y; y++)
                 {
                     point = new Vector2(corridor.Corner.x, y);
-                    _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
+                    Tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
                 }
             }
@@ -127,7 +143,7 @@ namespace World.Dungeon.Generators
                 {
                     point = new Vector2(corridor.Corner.x, y);
 
-                    _tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
+                    Tiles[(int)point.x, y] = new Tile(Tile.TileType.FLOOR, true);
                     corrPoints.Add(point);
                 }
             }
@@ -138,9 +154,109 @@ namespace World.Dungeon.Generators
                 this.CheckNeigbour(v, corrPoints);
             }
 
-            //for debug pourposes, end and start are a door
-            _tiles[(int)corridor.Start.x, (int)corridor.Start.y] = new Tile(Tile.TileType.DOOR, true);
-            _tiles[(int)corridor.End.x, (int)corridor.End.y] = new Tile(Tile.TileType.DOOR, true);
+            this.CreateDoors(corrPoints);
+
+
+        }
+
+        private void CreateDoors(in List<Vector2> corridors)
+        {
+            bool door;
+
+            foreach (Vector2 v in corridors)
+            {
+                door = true;
+
+                MyPoint p = new MyPoint((int)v.x, (int)v.y);
+
+                //primero miramos si está entre dos bloques verticales
+                if (Tiles[p.X, p.Y + 1].HasValue && Tiles[p.X, p.Y + 1].Value.MyType != Tile.TileType.FLOOR &&
+                    Tiles[p.X, p.Y - 1].HasValue && Tiles[p.X, p.Y - 1].Value.MyType != Tile.TileType.FLOOR)
+                {
+                    //miramos si a la derecha tiene suelo
+                    if (Tiles[p.X + 1, p.Y].HasValue && Tiles[p.X + 1, p.Y].Value.MyType == Tile.TileType.FLOOR)
+                    {
+                        door = IsTileYSegmentAType(p.X + 1, p.Y - 1, p.Y + 1, Tile.TileType.FLOOR);
+
+                        if (door)
+                            Messages.Print("Simple generator", "Rigth door is done!");
+                    }
+                    else
+                    {
+                        door = false;
+                    }
+
+                    //si no hay puerta, miramos a ver
+                    if (door == false && Tiles[p.X - 1, p.Y].HasValue && Tiles[p.X - 1, p.Y].Value.MyType == Tile.TileType.FLOOR)
+                    {
+                        door = IsTileYSegmentAType(p.X - 1, p.Y - 1, p.Y + 1, Tile.TileType.FLOOR);
+
+                    }
+                }
+                else
+                {
+                    door = false;
+                }
+
+
+                if (door == false && Tiles[p.X - 1, p.Y].HasValue && Tiles[p.X - 1, p.Y].Value.MyType != Tile.TileType.FLOOR &&
+                    Tiles[p.X + 1, p.Y].HasValue && Tiles[p.X + 1, p.Y].Value.MyType != Tile.TileType.FLOOR)
+                {
+                    door = true;
+
+                    //miramos si arriba
+                    if (Tiles[p.X, p.Y + 1].HasValue && Tiles[p.X, p.Y + 1].Value.MyType == Tile.TileType.FLOOR)
+                    {
+                        door = IsTileXSegmentAType(p.Y + 1, p.X - 1, p.X + 1, Tile.TileType.FLOOR);
+
+                        if (door)
+                            Messages.Print("Simple Generator", "Down done");
+                    }
+                    else
+                    {
+                        door = false;
+                    }
+
+                    //si hemos modificado, pasamos, sino miramos a ver qué se cuenta
+                    if (door == false && Tiles[p.X, p.Y - 1].HasValue && Tiles[p.X, p.Y - 1].Value.MyType == Tile.TileType.FLOOR)
+                    {
+                        door = IsTileXSegmentAType(p.Y - 1, p.X - 1, p.X + 1, Tile.TileType.FLOOR);
+
+                        if (door)
+                            Messages.Print("Simple Generator", "Up done");
+                    }
+                }
+
+                if (door)
+                {
+                    Tiles[p.X, p.Y] = new Tile(Tile.TileType.DOOR, true);
+                }
+            }
+        }
+        private bool IsTileYSegmentAType(in int xConst, in int yOrigin, in int yDest, in Tile.TileType type)
+        {
+
+            for (int y = yOrigin; y <= yDest; y++)
+            {
+                if (Tiles[xConst, y].HasValue && Tiles[xConst, y].Value.MyType != type)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool IsTileXSegmentAType(in int yConst, in int xOrigin, in int xDest, in Tile.TileType type)
+        {
+
+            for (int x = xOrigin; x <= xDest; x++)
+            {
+                if (Tiles[x, yConst].HasValue && Tiles[x, yConst].Value.MyType != type)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void CheckNeigbour(in Vector2 point, in List<Vector2> lisPoints)
@@ -159,9 +275,9 @@ namespace World.Dungeon.Generators
                     }
 
                     //si es nullo o bien tiene suelo y pertenece a una habitación, metemos pared.
-                    if (_tiles[x, y].HasValue == false || (_tiles[x, y].Value.MyType == Tile.TileType.FLOOR && (IsPointInRoom(point) && IsPointInList(point, lisPoints) == false)))
+                    if (Tiles[x, y].HasValue == false || (Tiles[x, y].Value.MyType == Tile.TileType.FLOOR && (IsPointInRoom(point) && IsPointInList(point, lisPoints) == false)))
                     {
-                        _tiles[x, y] = new Tile(Tile.TileType.WALL, true);
+                        Tiles[x, y] = new Tile(Tile.TileType.WALL, true);
                     }
                 }
             }
@@ -222,7 +338,7 @@ namespace World.Dungeon.Generators
 
                 for (int i = 0; i < temp.Count; i++)
                 {
-                    _tiles[(int)temp[i].x, (int)temp[i].y] = new Tile(Tile.TileType.WALL, true);
+                    Tiles[(int)temp[i].x, (int)temp[i].y] = new Tile(Tile.TileType.WALL, true);
                 }
 
                 //get the floor for each room and put onto the map
@@ -231,7 +347,7 @@ namespace World.Dungeon.Generators
 
                 for (int i = 0; i < temp.Count; i++)
                 {
-                    _tiles[(int)temp[i].x, (int)temp[i].y] = new Tile(Tile.TileType.FLOOR, true);
+                    Tiles[(int)temp[i].x, (int)temp[i].y] = new Tile(Tile.TileType.FLOOR, true);
                 }
 
             }
