@@ -26,7 +26,7 @@ namespace World.Dungeon
         public Tile?[,] GetTiles(out Vector2 pos){
             //pillar el tipo de generator
             //devolvemos
-            return new SimpleGenerator().GetTiles(out pos);
+            return new RoomGridGenerator().GetTiles(out pos);
         }
 
         

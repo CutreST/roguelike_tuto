@@ -5,9 +5,6 @@
 
 [node name="WorldMap" type="Node"]
 script = ExtResource( 1 )
-WIDTH = 80
-HEIGHT = 50
-WALL_NAME = "walls"
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = ExtResource( 2 )

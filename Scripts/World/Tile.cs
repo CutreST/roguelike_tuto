@@ -11,7 +11,7 @@ namespace World
         public bool IsBlocked;
         public bool IsSightBloked;
 
-        public Tile(in TileType tileType, in bool defaultSet){
+        public Tile(in TileType tileType, in bool defaultSet = true){
             MyType = TileType.FLOOR;
             IsBlocked = false;
             IsSightBloked = false;
