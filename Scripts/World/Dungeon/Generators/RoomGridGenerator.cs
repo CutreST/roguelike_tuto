@@ -48,28 +48,30 @@ namespace World.Dungeon.Generators
             #endregion
 
             //pintamos habitaciones
-            List<Room> rooms;
+            Dictionary<MyPoint, Room> pointsAndRooms;
             Messages.Print("Tiles size", "(" + Tiles.GetLength(0) + "," + Tiles.GetLength(1) + ")");
-            rooms = this.CreateRooms(gen, roomCoord);
+            pointsAndRooms = this.CreateRooms(gen, roomCoord);
 
             //pintamos
             //TODO: esto podría ir en un punto a parte
-            foreach(Room r in rooms){
+            foreach (Room r in pointsAndRooms.Values)
+            {
                 List<Vector2> coords = r.GetWallsPositions();
-                
-                foreach(Vector2 v in coords){
+
+                foreach (Vector2 v in coords)
+                {
                     Tiles[(int)v.x, (int)v.y] = new Tile(Tile.TileType.WALL);
                 }
 
-                
+
                 coords = r.GetFloorPositions();
-                foreach(Vector2 v in coords){
+                foreach (Vector2 v in coords)
+                {
                     Tiles[(int)v.x, (int)v.y] = new Tile(Tile.TileType.FLOOR);
                 }
             }
 
-
-
+            this.CreatePassages(gen, pointsAndRooms);
             pos = Vector2.Zero;
             return ref this.Tiles;
         }
@@ -99,7 +101,7 @@ namespace World.Dungeon.Generators
             }
         }
 
-        private List<Room> CreateRooms(in RandomNumberGenerator gen, in List<MyPoint> roomCoord)
+        private Dictionary<MyPoint, Room> CreateRooms(in RandomNumberGenerator gen, in List<MyPoint> roomCoord)
         {
             //lista de coordenadas del grid _grid que tiene una habitación.
             MyPoint minTopLeft;
@@ -108,7 +110,8 @@ namespace World.Dungeon.Generators
             MyPoint roomSize;
             Room room;
 
-            List<Room> rooms = new List<Room>(roomCoord.Count);
+            //guardamos por cada punto del _grid la habitación que tiene, más fácil luego para jugar
+            Dictionary<MyPoint, Room> pointAndRoom = new Dictionary<MyPoint, Room>();
 
             foreach (MyPoint p in roomCoord)
             {
@@ -132,26 +135,110 @@ namespace World.Dungeon.Generators
                 room = new Room(topLeft.X, topLeft.Y, topLeft.X + roomSize.X, topLeft.Y + roomSize.Y);
                 Messages.Print("Top Left: " + topLeft);
                 Messages.Print("BottomR: " + room.BottomRight);
-                rooms.Add(room);
+
+                pointAndRoom.Add(p, room);
             }
 
-            return rooms;
+            return pointAndRoom;
 
         }
 
-        private void CreatePassages(in RandomNumberGenerator gen){
-            //esto lo dejaremos para mañana
-
+        private void CreatePassages(in RandomNumberGenerator gen, in Dictionary<MyPoint, Room> pointAndRoom)
+        {
             //la idea es hacer un BDS o como se llame por cada habitacion del _Grid (por eso hemos creado eso básicamente) y las habitaciones
-            //con las que se conecta (diccionario)
-            //Así tendriamos:
-                    // Grid[MyPoint_1], List<MyPoint> connexiones
-                    // Grid[MyPoint_2], List<MyPoint> connexiones
-                    //etc
+
+            Dictionary<Room, List<MyPoint>> roomAndConnections = new Dictionary<Room, List<MyPoint>>();
+
+            foreach (MyPoint p in pointAndRoom.Keys)
+            {
+                //añadimos cada habitación con sus conexiones
+                roomAndConnections.Add(pointAndRoom[p], this.GetColindantRooms(p, new List<MyPoint>()));
+            }
+            //comprobamos
+            string a = "";
+
+            foreach (Room r in roomAndConnections.Keys)
+            {
+                a = "Room at " + new MyPoint(r.TopLeft.X / GRID_CELL_SIZE.X, r.TopLeft.Y/GRID_CELL_SIZE.Y).ToString() + " connected with: ";
+
+                for (int i = 0; i < roomAndConnections[r].Count; i++)
+                {
+                    a += roomAndConnections[r][i].ToString() + ", ";
+                }
+                Messages.Print(a);
+            }
             //allí, dependiendo del max de conexiones conectaremos
             //hará falta pensar alguna cosita extra, pero la idea general es esta
 
+            //ahora de cada mierda de esta pillaremos las dos primeras y creamos el pasillo
+            //TODO: optimiza tio que esto tiene de todo.
+
+            int limitCon = 2;
+            foreach(Room r in roomAndConnections.Keys){
+                for (int i = 0; i < limitCon; i++)
+                {   
+                    //pillamos las celdas de camino
+
+                    //pillamos punto de salida
+
+                    //pillamos punto de entrada
+
+                    //conectamos
+                }
+            }
+
 
         }
+
+        readonly MyPoint[] directions = {new MyPoint(0,1), new MyPoint(0,-1),
+                                         new MyPoint(1,0), new MyPoint(-1,0)};
+        private List<MyPoint> GetColindantRooms(in MyPoint origin, List<MyPoint> used)
+        {
+            //búsqueda en 4 direcciones
+            MyPoint tempPoint;
+            List<MyPoint> connections = new List<MyPoint>();
+            for (int i = 0; i < directions.Length; i++)
+            {
+                tempPoint = origin + directions[i];
+
+                if (tempPoint.X < 0 || tempPoint.X >= Tiles.GetLength(0) - 1 ||
+                   tempPoint.Y < 0 || tempPoint.Y >= Tiles.GetLength(1) - 1 ||
+                   used.Contains(tempPoint))
+                {
+                    continue;
+                }
+
+                used.Add(tempPoint);
+
+                if (_grid.HasRoomAt(tempPoint.X, tempPoint.Y))
+                {
+                    connections.Add(tempPoint);
+                }
+                else
+                {
+                    //si no hay conexión, buscamos en ese punto a ver qué pasa
+                    connections.AddRange(this.GetColindantRooms(tempPoint, used));
+                }
+            }
+            return connections;
+        }
+
+        private List<MyPoint> GetPathTo(in MyPoint origin, in MyPoint dest)
+        {
+            //búsqueda en 4 direcciones
+            MyPoint tempPoint;
+            List<MyPoint> connections = new List<MyPoint>();
+            Queue<MyPoint> pointsToSearch = new Queue<MyPoint>();
+            pointsToSearch.Enqueue(origin);
+
+            
+
+                
+
+           
+            return connections;
+        }
+
+        
     }
 }
