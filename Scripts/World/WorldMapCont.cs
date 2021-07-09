@@ -38,11 +38,7 @@ namespace World
 
         //OJU
         //This hardcoded settings are only for test. 
-        //Have to remove when creating diferents maps
-        [Export]
-        private readonly int WIDTH;
-        [Export]
-        private readonly int HEIGHT;
+        //Have to remove when creating diferents maps        
 
         [Export]
         private readonly string WALL_NAME;
@@ -69,7 +65,7 @@ namespace World
             base._EnterTree();
             //create a new world,
             //OJU! change if changes the map
-            this.MyWorld = new WorldMap(WIDTH, HEIGHT);
+
 
             //pains the tilemap
             //this.RunTileMap();
@@ -100,15 +96,15 @@ namespace World
             this.SetMap();
         }
 
-       
+
 
         #endregion
         const string SPACE_ACTION = "ui_select";
         public override void _PhysicsProcess(float delta)
         {
             base._PhysicsProcess(delta);
-            if(Input.IsActionJustPressed(SPACE_ACTION)){
-
+            if (Input.IsActionJustPressed(SPACE_ACTION))
+            {
                 //clear
                 _tilemap.Clear();
                 MyWorld.ClearMap();
@@ -124,55 +120,60 @@ namespace World
             this.MyWorld = new WorldMap(this._generator.GetTiles(out pos));
             this.PaintMap();
 
-
+            //TODO: change this in it's file
             _player.GlobalPosition = new Vector2(pos.x * 24 + 12, pos.y * 24 + 12);
-
-            //ahora pintamos
-            //this.PaintWalls(walls);
-            //this.PaintFloor(floor);
-
-            /*this.PaintTiles(walls, WALL_NAME);
-            this.PaintTiles(floor, FLOOR_NAME);
-            this.PaintTiles(corridor, CORRIDOR_NAME);*/
         }
 
-        private void PaintMap(){
+        private void PaintMap()
+        {
             Tile? currentTile;
             int id;
-            for (int x = 0; x < MyWorld.WIDTH; x++){
-                for (int y = 0; y < MyWorld.HEIGHT; y++){
+
+            //Create a dictionary with TileType, TileName
+            for (int x = 0; x < MyWorld.WIDTH; x++)
+            {
+                for (int y = 0; y < MyWorld.HEIGHT; y++)
+                {
                     currentTile = MyWorld.Tiles[x, y];
-                    if(currentTile.HasValue){
-                        switch(MyWorld.Tiles[x,y].Value.MyType){
-                            case Tile.TileType.WALL:
-                                id = 1;
-                                break;
-
-                            case Tile.TileType.FLOOR:
-                                id = 2;
-                                break;
-
-                            case Tile.TileType.DOOR:
-                                id = 4;
-                                break;
-
-                            default:
-                                id = 3;
-                                break;
-                        }
-
-                        _tilemap.SetCell(x, y, id);
+                    if (currentTile.HasValue)
+                    {
+                        this.PaintCell(x, y, currentTile.Value.MyType);
                     }
-                    
+
                 }
             }
+        }
+
+        private void PaintCell(in int posX, in int posY, in Tile.TileType type)
+        {
+            int id;
+            switch (MyWorld.Tiles[posX, posY].Value.MyType)
+            {
+                case Tile.TileType.WALL:
+                    id = 1;
+                    break;
+
+                case Tile.TileType.FLOOR:
+                    id = 2;
+                    break;
+
+                case Tile.TileType.DOOR:
+                    id = 4;
+                    break;
+
+                default:
+                    id = 3;
+                    break;
+            }
+
+            _tilemap.SetCell(posX, posY, id);
         }
 
         private void CreateCollisionTiles(in List<Vector2> walls)
         {
             for (int i = 0; i < walls.Count; i++)
             {
-                MyWorld.Tiles[(int)walls[i].x, (int)walls[i].y] = new Tile(true);                
+                MyWorld.Tiles[(int)walls[i].x, (int)walls[i].y] = new Tile(true);
             }
         }
 
@@ -184,13 +185,16 @@ namespace World
             }
         }
 
-        private void PaintTiles(in List<Vector2> tiles, in string tileName){
+        private void PaintTiles(in List<Vector2> tiles, in string tileName)
+        {
             int id = _tilemap.TileSet.FindTileByName(tileName);
 
-            for (int i = 0; i < tiles.Count; i++){
+            for (int i = 0; i < tiles.Count; i++)
+            {
                 _tilemap.SetCell((int)tiles[i].x, (int)tiles[i].y, id);
             }
         }
+
         [Obsolete]
         private void PaintWalls(in List<Vector2> walls)
         {
@@ -218,26 +222,17 @@ namespace World
         /// <param name="posX">Position X</param>
         /// <param name="posY">Position Y</param>
         /// <returns></returns>
-        public bool IsTileBlocked(in int posX, in int posY)
+        public bool IsTileBlocked(in int posX, in int posY, in bool globalPosition)
         {
-            Vector2 tilePos = WorldToTilePos(new Vector2(posX, posY));            
+            Tile? temp;
 
-            //out of bonds
-            if (tilePos.x < 0 || tilePos.x >= WIDTH || tilePos.y < 0 || tilePos.y >= HEIGHT )
+            if (this.GetTileAt(out temp, posX, posY, globalPosition))
             {
-                Messages.Print(base.Name, "The tile at pos (" + posX + ", " + posY + ") is out of bonds");
-                return true;
+                return temp.Value.IsBlocked;
             }
 
-            //right now null = INtransitable, now there's a floor
-            if (MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y] == null)
-            {
-                return true;
-            }
-
-            //returns current tile is blocked
-            return MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y].Value.IsBlocked;
-
+            //if null, the player dosn't move
+            return true;
         }
 
         /// <summary>
@@ -252,6 +247,58 @@ namespace World
             pos.y = (int)pos.y;
 
             return pos;
+        }
+
+        public bool GetTileAt(out Tile? tile, in int posX, in int posY, in bool isGlobalPos)
+        {
+
+            Vector2 tilePos;
+
+            if (isGlobalPos)
+            {
+                tilePos = WorldToTilePos(new Vector2(posX, posY));
+            }
+            else
+            {
+                tilePos = new Vector2(posX, posY);
+            }
+
+            //out of bonds
+            if (tilePos.x < 0 || tilePos.x >= MyWorld.WIDTH || tilePos.y < 0 || tilePos.y >= MyWorld.HEIGHT)
+            {
+                Messages.Print(base.Name, "The tile at pos (" + posX + ", " + posY + ") is out of bonds");
+                tile = null;
+                return false;
+            }
+
+            tile = MyWorld.Tiles[(int)tilePos.x, (int)tilePos.y];
+
+            if (tile != null)
+            {
+                return true;
+            }
+
+            return false;
+
+        }
+
+        public void OpenDoor(in int posX, in int posY, in bool isGlobalPos, in Tile.TileType newType)
+        {
+            Vector2 pos;
+
+            if (isGlobalPos)
+            {
+                pos = this.WorldToTilePos(new Vector2(posX, posY));
+            }
+            else
+            {
+                pos = new Vector2(posX, posY);
+            }
+
+            //de momento lo cambiamos a suelo
+            MyWorld.Tiles[(int)pos.x, (int)pos.y] = new Tile(newType);
+            //joder hay que cambiar la pintura            
+            this.PaintCell((int)pos.x, (int)pos.y, newType);
         }
 
         /// <summary>
@@ -287,10 +334,6 @@ namespace World
                     }
                 }
             }
-
-
-
         }
-
     }
 }

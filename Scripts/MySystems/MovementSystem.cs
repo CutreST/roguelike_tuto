@@ -26,14 +26,23 @@ namespace MySystems
             //en algún momento deberíamos enviar cualquier mierda
 
             tempPos = mov.MyEntity.GlobalPosition + new Vector2(mov.TILE_WIDTH, mov.TILE_HEIGHT) * mov.Direction;
+            Tile? temp;
 
-            
+            if(MyWorld.GetTileAt(out temp, (int)tempPos.x, (int)tempPos.y, true) == false){
+                return;
+            }
+
             //check for null only for test prourposes (ex: test the movement outside the world an so on)
-            if (MyWorld.IsTileBlocked((int)tempPos.x, (int)tempPos.y))
+            if (temp.Value.IsBlocked)
             {
+                //if blocked, check if it's a door, is so, open
+                if(temp.Value.MyType == Tile.TileType.DOOR){
+                    MyWorld.OpenDoor((int)tempPos.x, (int)tempPos.y, true, Tile.TileType.FLOOR);
+                }
                 Messages.Print("nooooo, null or blocked");
                 return;
             }
+
             mov.MyEntity.GlobalPosition = tempPos;
         }
 

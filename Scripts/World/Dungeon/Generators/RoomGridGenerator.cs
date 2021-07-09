@@ -9,7 +9,7 @@ namespace World.Dungeon.Generators
     public class RoomGridGenerator : BaseGenerator
     {
         RoomGrid _grid;
-        private readonly int ROOM_NUMBER = 8;
+        private readonly int ROOM_NUMBER = 4;
         private readonly MyPoint ROOM_MIN_SIZE = new MyPoint(3, 3);
         private readonly MyPoint ROOM_MAX_SIZE = new MyPoint(6, 6);
         private readonly MyPoint GRID_CELL_SIZE = new MyPoint(10, 10);
@@ -95,7 +95,7 @@ namespace World.Dungeon.Generators
                 else
                 {
                     this._grid.SetRoomAt(coord.X, coord.Y);
-                    Messages.Print("Roooooooooom at " + coord);
+                    //Messages.Print("Roooooooooom at " + coord);
                     roomCoords.Add(coord);
                 }
             }
@@ -133,8 +133,8 @@ namespace World.Dungeon.Generators
 
                 //y ahor auna habitación
                 room = new Room(topLeft.X, topLeft.Y, topLeft.X + roomSize.X, topLeft.Y + roomSize.Y);
-                Messages.Print("Top Left: " + topLeft);
-                Messages.Print("BottomR: " + room.BottomRight);
+                //Messages.Print("Top Left: " + topLeft);
+                //Messages.Print("BottomR: " + room.BottomRight);
 
                 pointAndRoom.Add(p, room);
             }
@@ -159,7 +159,7 @@ namespace World.Dungeon.Generators
 
             foreach (Room r in roomAndConnections.Keys)
             {
-                a = "Room at " + new MyPoint(r.TopLeft.X / GRID_CELL_SIZE.X, r.TopLeft.Y/GRID_CELL_SIZE.Y).ToString() + " connected with: ";
+                a = "Room at " + new MyPoint(r.TopLeft.X / GRID_CELL_SIZE.X, r.TopLeft.Y / GRID_CELL_SIZE.Y).ToString() + " connected with: ";
 
                 for (int i = 0; i < roomAndConnections[r].Count; i++)
                 {
@@ -174,10 +174,13 @@ namespace World.Dungeon.Generators
             //TODO: optimiza tio que esto tiene de todo.
 
             int limitCon = 2;
-            foreach(Room r in roomAndConnections.Keys){
+            List<MyPoint> connections;
+            foreach (Room r in roomAndConnections.Keys)
+            {
                 for (int i = 0; i < limitCon; i++)
-                {   
+                {
                     //pillamos las celdas de camino
+                    connections = this.GetPathTo(new MyPoint(r.TopLeft.X / GRID_CELL_SIZE.X, r.TopLeft.Y / GRID_CELL_SIZE.Y), roomAndConnections[r][i]);
 
                     //pillamos punto de salida
 
@@ -197,6 +200,8 @@ namespace World.Dungeon.Generators
             //búsqueda en 4 direcciones
             MyPoint tempPoint;
             List<MyPoint> connections = new List<MyPoint>();
+            used.Add(origin);
+            
             for (int i = 0; i < directions.Length; i++)
             {
                 tempPoint = origin + directions[i];
@@ -225,20 +230,90 @@ namespace World.Dungeon.Generators
 
         private List<MyPoint> GetPathTo(in MyPoint origin, in MyPoint dest)
         {
-            //búsqueda en 4 direcciones
+            //búsqueda en 4 direcciones            
             MyPoint tempPoint;
+            MyPoint parentPoint;
             List<MyPoint> connections = new List<MyPoint>();
             Queue<MyPoint> pointsToSearch = new Queue<MyPoint>();
+            List<MyPoint> used = new List<MyPoint>();
+
             pointsToSearch.Enqueue(origin);
 
-            
+            //creo que lo más sencillo será crear un grid que imite el _grid con la 
+            //estructura pointPAC, el grid será nulleable, así sabremos si hemos
+            //visitado ya esa celda, y luego, ale, a tirar.
+            //sí, creo que será lo más sencillo.
+            //OJU: también lo podriamos hacern el la struct _grid.
 
+            PointPAC?[,] tempGrid = new PointPAC?[GRID_SIZE.X, GRID_SIZE.Y];
+
+            for (int i = 0; i < pointsToSearch.Count; i++)
+            {
+                parentPoint = pointsToSearch.Dequeue();
                 
 
-           
+                for (int j = 0; j < directions.Length; j++)
+                {
+                    tempPoint = parentPoint + directions[j];
+
+                    if (tempPoint.X < 0 || tempPoint.X >= tempGrid.GetLength(0) - 1 ||
+                        tempPoint.Y < 0 || tempPoint.Y >= tempGrid.GetLength(1) - 1 ||
+                        pointsToSearch.Contains(tempPoint) || used.Contains(tempPoint))
+                    {
+                        continue;
+                    }
+
+                    used.Add(parentPoint);
+                    tempGrid[tempPoint.X, tempPoint.Y] = new PointPAC(parentPoint, tempPoint);
+
+                    if (tempPoint == dest)
+                    {
+                        Messages.Print("Destinaaaaation");
+
+                        MyPoint a = new MyPoint(-1, -1);
+
+                        while (a != origin)
+                        {
+                            a = tempGrid[tempPoint.X, tempPoint.Y].Value.Parent;
+                            connections.Add(a);
+                        }
+
+                        return connections;
+                    }
+                    else if (_grid.HasRoomAt(tempPoint.X, tempPoint.Y) == false)
+                    {
+                        pointsToSearch.Enqueue(tempPoint);
+                    }
+                }
+
+            }
+            return connections;
+
+            //OJU: nuevo bug en potencia, tampoco sabemos qué habitaciones están conectadas
+            //con otras habitaciones, así que, por ejemplo, si miramos Hab_A y está conectada con Hab_B y Hab_C, y luego
+            //volvemos a operar y Hab_B se vuelve a conectar con Hab_A podemos crear diferentes pasillos 
+            //y acabará hecho un lío.
+            //quizás deberiamos darle una vuelta de tuerca
+
+
+
+
             return connections;
         }
 
-        
+
+    }
+
+    public struct PointPAC
+    {
+        public MyPoint Parent;
+        public MyPoint Child;
+
+
+        public PointPAC(in MyPoint parent, in MyPoint child)
+        {
+            this.Parent = parent;
+            this.Child = child;
+        }
     }
 }

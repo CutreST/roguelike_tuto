@@ -39,7 +39,10 @@ namespace World.Dungeon.Generators
         /// <summary>
         /// The max number of rooms
         /// </summary>
-        readonly int WALL_NUMBER = 6;
+        readonly int WALL_NUMBER;
+
+        readonly int WALL_MAX = 8;
+        readonly int WALL_MIN = 4;
 
         /// <summary>
         /// The limits of the roomsize
@@ -101,6 +104,8 @@ namespace World.Dungeon.Generators
             this._corridors = new List<SimpleCorridor>();
             this._dungeonRooms = new List<Room>();
             Tiles = new Tile?[_mapSize.X, _mapSize.Y];
+            RandomNumberGenerator gen = new RandomNumberGenerator();
+            WALL_NUMBER = gen.RandiRange(WALL_MIN, WALL_MAX);
         }
 
         private void CorridorToMap(in SimpleCorridor corridor, in Room origin, in Room dest)
@@ -414,22 +419,25 @@ namespace World.Dungeon.Generators
                 Vector2 start, end, corner;
 
                 //50% chances to begin the corridor in horizontal, vertical
+                
                 if (r.RandiRange(0, 100) < 50)
                 {
                     this.CreateCorridorXAxis(origin, dest, out corner, out start);
                     this.CreateCorridorYAxis(origin, dest, corner, out end);
+                    Messages.Print("Chances says: ", "chosen first");
                 }
                 else
                 {
                     this.CreateCorridorXAxis(dest, origin, out corner, out start);
                     this.CreateCorridorYAxis(dest, origin, corner, out end);
+                    Messages.Print("Chances says: ", "chosen second");
                 }
 
                 //debug messages
                 Messages.Print("Origin: " + origin.TopLeft.X + "/" + origin.TopLeft.Y);
                 Messages.Print("Destination: " + dest.TopLeft.X + "/" + dest.TopLeft.Y);
-                Messages.Print("Center Origin: " + origin.CenterX);
-                Messages.Print("Center Destination: " + dest.CenterX);
+                Messages.Print("Center Origin: (" + origin.CenterX + "," + origin.CenterY + ")");
+                Messages.Print("Center Destination: (" + dest.CenterX + "," + dest.CenterY + ")");
 
                 SimpleCorridor s = new SimpleCorridor(start, end, corner);
                 this.CorridorToMap(s, origin, dest);
@@ -473,9 +481,12 @@ namespace World.Dungeon.Generators
             {
                 point = new Vector2(corner.x, dest.BottomRight.Y);
             }
-            else
+            else if(origin.CenterY < dest.CenterY)
             {
                 point = new Vector2(corner.x, dest.TopLeft.Y);
+            }
+            else{
+                point = new Vector2(corner.x, dest.CenterY);
             }
         }
 
@@ -520,13 +531,6 @@ namespace World.Dungeon.Generators
 
             return false;
         }
-
-
-
-
-
-
-
     }
 
 }
