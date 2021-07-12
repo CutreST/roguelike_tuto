@@ -167,6 +167,7 @@ namespace World.Dungeon.Generators
         private void CreateDoors(in List<Vector2> corridors)
         {
             bool door;
+            List<MyPoint> doorsPos = new List<MyPoint>();
 
             foreach (Vector2 v in corridors)
             {
@@ -235,9 +236,70 @@ namespace World.Dungeon.Generators
                 if (door)
                 {
                     Tiles[p.X, p.Y] = new Tile(Tile.TileType.DOOR, true);
+
+                    //añadimos para comprobar
+                    doorsPos.Add(p);
+                }
+            }
+
+            //ok, ahora comprobamos si una puerta tiene 
+            int wallS = 0;
+            const int wallLimit = 5;
+
+            MyPoint[] eightDir = { new MyPoint(1, 0), new MyPoint(-1, 0), new MyPoint(0, 1), new MyPoint(0, -1),
+                                   new MyPoint(1,1), new MyPoint(-1,1), new MyPoint(1,-1), new MyPoint(-1,-1) };
+            MyPoint tempPoint;
+            MyPoint current;
+            Tile? tile;
+
+            for (int d = doorsPos.Count - 1; d >= 0; d--)
+            {
+                current = doorsPos[d];
+                //check every pos
+                for (int i = 0; i < eightDir.Length; i++)
+                {
+                    tempPoint = current + eightDir[i];
+                    tile = Tiles[tempPoint.X, tempPoint.Y];
+
+                    if (tile.HasValue)
+                    {
+                        if (tile.Value.MyType == Tile.TileType.WALL)
+                        {
+                            wallS++;
+                        }
+                    }
+                }
+
+                if (wallS >= wallLimit)
+                {
+                    Tiles[current.X, current.Y] = new Tile(Tile.TileType.FLOOR);
+                    doorsPos.RemoveAt(d);
+                }
+            }
+
+            //ahora miramos por cada puerta el lado en el que tiene una pared, si la tiene, le metemos al opuesto
+            //pfff, solucionar bugs es más complicado casi que hacer otra cosa.
+            foreach (MyPoint p in doorsPos)
+            {
+
+                for (int i = 0; i < eightDir.Length - 3; i++)
+                {
+                    current = p + eightDir[i];
+                    //si hay valor y es wall, el opuesto también lo será
+                    if (Tiles[current.X, current.Y].HasValue && Tiles[current.X, current.Y].Value.MyType == Tile.TileType.WALL)
+                    {
+                        Messages.Print("Yoloooooooooooo");
+                        Messages.Print("before pos:", current.ToString());
+                        Messages.Print("center pos: ", p.ToString());
+                        current = p + new MyPoint(eightDir[i].X * -1, eightDir[i].Y * -1);
+                        Messages.Print("after pos:", current.ToString());
+                        Tiles[current.X, current.Y] = new Tile(Tile.TileType.WALL);
+                        break;
+                    }
                 }
             }
         }
+        
         private bool IsTileYSegmentAType(in int xConst, in int yOrigin, in int yDest, in Tile.TileType type)
         {
 
@@ -419,7 +481,7 @@ namespace World.Dungeon.Generators
                 Vector2 start, end, corner;
 
                 //50% chances to begin the corridor in horizontal, vertical
-                
+
                 if (r.RandiRange(0, 100) < 50)
                 {
                     this.CreateCorridorXAxis(origin, dest, out corner, out start);
@@ -481,11 +543,12 @@ namespace World.Dungeon.Generators
             {
                 point = new Vector2(corner.x, dest.BottomRight.Y);
             }
-            else if(origin.CenterY < dest.CenterY)
+            else if (origin.CenterY < dest.CenterY)
             {
                 point = new Vector2(corner.x, dest.TopLeft.Y);
             }
-            else{
+            else
+            {
                 point = new Vector2(corner.x, dest.CenterY);
             }
         }
@@ -501,7 +564,7 @@ namespace World.Dungeon.Generators
         {
             foreach (Room room in _dungeonRooms)
             {
-                if ((room.TopLeft.X + 1 <= point.x && room.BottomRight.X - 1 >= point.x && room.TopLeft.Y + 1 <= point.y && room.BottomRight.Y - 1 >= point.y))
+                if ((room.TopLeft.X <= point.x && room.BottomRight.X >= point.x && room.TopLeft.Y <= point.y && room.BottomRight.Y >= point.y))
                 {
                     return true;
                 }

@@ -148,13 +148,14 @@ namespace World.Dungeon.Generators
             //la idea es hacer un BDS o como se llame por cada habitacion del _Grid (por eso hemos creado eso básicamente) y las habitaciones
 
             Dictionary<Room, List<MyPoint>> roomAndConnections = new Dictionary<Room, List<MyPoint>>();
-
+            
             foreach (MyPoint p in pointAndRoom.Keys)
             {
                 //añadimos cada habitación con sus conexiones
-                roomAndConnections.Add(pointAndRoom[p], this.GetColindantRooms(p, new List<MyPoint>()));
+                roomAndConnections.Add(pointAndRoom[p], this.GetColindantRooms(p));
             }
             //comprobamos
+            
             string a = "";
 
             foreach (Room r in roomAndConnections.Keys)
@@ -167,6 +168,8 @@ namespace World.Dungeon.Generators
                 }
                 Messages.Print(a);
             }
+
+            return;
             //allí, dependiendo del max de conexiones conectaremos
             //hará falta pensar alguna cosita extra, pero la idea general es esta
 
@@ -195,8 +198,44 @@ namespace World.Dungeon.Generators
 
         readonly MyPoint[] directions = {new MyPoint(0,1), new MyPoint(0,-1),
                                          new MyPoint(1,0), new MyPoint(-1,0)};
-        private List<MyPoint> GetColindantRooms(in MyPoint origin, List<MyPoint> used)
+        private List<MyPoint> GetColindantRooms(in MyPoint origin)
         {
+            MyPoint tempPoint;
+            MyPoint currentPoint;
+            Queue<MyPoint> toLook = new Queue<MyPoint>();
+            List<MyPoint> usedPointS = new List<MyPoint>();
+            List<MyPoint> connectedRooms = new List<MyPoint>();
+            toLook.Enqueue(origin);
+
+            //buscamos 4 direccions
+            while(toLook.Count > 0){
+                currentPoint = toLook.Dequeue();
+                usedPointS.Add(currentPoint);
+
+                for (int i = 0; i < directions.Length; i++){
+                    tempPoint = currentPoint + directions[i];
+
+                    //miramos si está fuera de márgenes o está usao o en la cola y, si lo está, nos vamos
+                    if(tempPoint.X < 0 || tempPoint.X >= _grid.GridSize.X ||
+                       tempPoint.Y < 0 || tempPoint.Y >= _grid.GridSize.Y ||
+                       usedPointS.Contains(tempPoint) || toLook.Contains(tempPoint)){
+                        continue;
+                    }
+
+                    //si hay habitación, significa que está conectao, lo metemos en la lista
+                    //de conexiones
+                    if(_grid.HasRoomAt(tempPoint.X, tempPoint.Y) && connectedRooms.Contains(tempPoint) == false){
+                        connectedRooms.Add(tempPoint);
+                    }else{
+                        //si no lo está, lo ponemos en los puntos a mirar
+                        toLook.Enqueue(tempPoint);
+                    }
+
+                }
+            }
+            return connectedRooms;
+
+            /*
             //búsqueda en 4 direcciones
             MyPoint tempPoint;
             List<MyPoint> connections = new List<MyPoint>();
@@ -225,7 +264,7 @@ namespace World.Dungeon.Generators
                     connections.AddRange(this.GetColindantRooms(tempPoint, used));
                 }
             }
-            return connections;
+            return connections;*/
         }
 
         private List<MyPoint> GetPathTo(in MyPoint origin, in MyPoint dest)
