@@ -22,6 +22,7 @@ namespace Entities.Components
         /// </summary>
         private MovementSystem _movSys;
 
+        private MovEvents_PL _movEv;
 
         //TODO:
         //Create a class, struct or wathever to put the dimensions and so.
@@ -38,6 +39,10 @@ namespace Entities.Components
         public void Move(in Vector2 direction){
             Direction = direction;
             _movSys.Move(this);
+
+            if(_movEv != null){
+                _movEv.OnMove(MyEntity.GlobalPosition);
+            }
         }
 
         #region Godot methods
@@ -46,12 +51,18 @@ namespace Entities.Components
             base._EnterTree();
             this.OnAwake();
         }
+
+        public override void _Ready()
+        {
+            base._Ready();
+            this.Ontart();
+        }
         #endregion
 
         #region Node comp methods
         public void OnAwake()
         {
-            System_Manager.GetInstance(this).TryGetSystem<MovementSystem>(out _movSys, true);
+            System_Manager.GetInstance(this).TryGetSystem<MovementSystem>(out _movSys, true);            
         }
 
         public void OnSetFree()
@@ -61,7 +72,8 @@ namespace Entities.Components
 
         public void Ontart()
         {
-            throw new NotImplementedException();
+            bool a = MyEntity.TryGetIComponentNode<MovEvents_PL>(out _movEv);
+            Messages.Print(base.Name + " got the events?", a.ToString());
         }
 
         public void Reset()

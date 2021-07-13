@@ -112,30 +112,85 @@ namespace World
                 this.SetMap();
             }
         }
+        const int OCTANE = 8;
+        const int FOV_DIST = 6;
+        public void PaintFOV(in Vector2 pos)
+        {       
+            List<int> notCol = new List<int>();
+            for (int oct = 0; oct < OCTANE; oct++){
+                notCol.Clear();
+                for (int row = 1; row < FOV_DIST; row++)
+                {                
+                    for (int col = 0; col <= row; col++)
+                    {
+                        Vector2 tilePos = WorldToTilePos(pos);
+                        Vector2 octane = TransformOctane(row, col, oct);
+
+                        int x = (int)tilePos.x + (int)octane.x;
+                        int y = (int)tilePos.y - (int)octane.y;                        
+                        
+                        if(notCol.Contains(col)){
+                            continue;
+                        }
+                        if(this.IsTileBlocked(x,y, false)){
+                            notCol.Add(col);
+                        }
+
+                        
+
+                        this.PaintMap(x, y, x + 1, y + 1);
+                        Messages.Print("move painting", tilePos.ToString());
+                    }
+                }
+            }
+                
+        }
+
+        private Vector2 TransformOctane(in int row, in int col, in int octant)
+        {
+            switch (octant)
+            {
+                case 0: return new Vector2(col, -row);
+                case 1: return new Vector2(row, -col);
+                case 2: return new Vector2(row, col);
+                case 3: return new Vector2(col, row);
+                case 4: return new Vector2(-col, row);
+                case 5: return new Vector2(-row, col);
+                case 6: return new Vector2(-row, -col);
+                case 7: return new Vector2(-col, -row);
+                default: return new Vector2(-50, -50);
+            }
+        }
+
+
+
+
+
 
         private void SetMap()
         {
             Vector2 pos;
 
             this.MyWorld = new WorldMap(this._generator.GetTiles(out pos));
-            this.PaintMap();
+            //this.PaintMap();
 
             //TODO: change this in it's file
             _player.GlobalPosition = new Vector2(pos.x * 24 + 12, pos.y * 24 + 12);
         }
 
-        private void PaintMap()
+        private void PaintMap(int xStart, int yStart, in int widht, in int height)
         {
             Tile? currentTile;
             int id;
 
+            
             //Create a dictionary with TileType, TileName
-            for (int x = 0; x < MyWorld.WIDTH; x++)
+            for (int x = xStart; x < widht; x++)
             {
-                for (int y = 0; y < MyWorld.HEIGHT; y++)
+                for (int y = yStart; y < height; y++)
                 {
-                    currentTile = MyWorld.Tiles[x, y];
-                    if (currentTile.HasValue)
+                    
+                    if (this.GetTileAt(out currentTile, x, y, false))
                     {
                         this.PaintCell(x, y, currentTile.Value.MyType);
                     }

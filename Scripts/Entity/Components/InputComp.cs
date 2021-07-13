@@ -118,6 +118,7 @@ namespace Entities.Components
         private void OnChangeInputVector(in Vector2 Vector)
         {
             Messages.Print("Input Vector: " + Vector);
+            //OJU! esto debería estar en otro lao
             _mov.Move(Vector);
         }
     }
