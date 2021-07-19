@@ -36,8 +36,12 @@ namespace Entities.Components
         /// Moves the <see cref="Entity"/> calling <see cref="MovementSystem.Move(in MovementComp)"/>
         /// </summary>
         /// <param name="direction">Direction of the movement</param>
-        public void Move(in Vector2 direction){
+        public void Move(in Vector2 direction){            
             Direction = direction;
+            if(Direction.x == 0 && direction.y == 0){
+                Messages.Print("Movement component", "direction vector = 0");
+                return;
+            }
             _movSys.Move(this);
 
             if(_movEv != null){

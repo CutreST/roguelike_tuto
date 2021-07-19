@@ -1,3 +1,4 @@
+using Base;
 using Godot;
 using MySystems;
 using System;
@@ -100,6 +101,10 @@ namespace World
 
         #endregion
         const string SPACE_ACTION = "ui_select";
+        /// <summary>
+        /// input for creating a new map.
+        /// </summary>
+        /// <param name="delta"></param>
         public override void _PhysicsProcess(float delta)
         {
             base._PhysicsProcess(delta);
@@ -113,37 +118,198 @@ namespace World
             }
         }
         const int OCTANE = 8;
-        const int FOV_DIST = 6;
+        const int OCTANE_START = 0;
+        const int FOV_DIST = 6*6;
+
         public void PaintFOV(in Vector2 pos)
-        {       
-            List<int> notCol = new List<int>();
-            for (int oct = 0; oct < OCTANE; oct++){
-                notCol.Clear();
-                for (int row = 1; row < FOV_DIST; row++)
-                {                
-                    for (int col = 0; col <= row; col++)
+        {
+            List<MyPoint> p = new List<MyPoint>();
+            Vector2 posInTile = this.WorldToTilePos(pos);
+            //_tilemap.Clear();
+
+            toPaint.Clear();
+            for (int oct = OCTANE_START; oct < OCTANE; oct++)
+            {
+                //end.Clear();
+                //p.AddRange(this.ToPaint(1, 0, posInTile, oct));
+                this.CastLight(posInTile, 1, 1.0f, 0.0f, oct);
+            }
+
+            foreach (MyPoint point in toPaint)
+            {
+                this.PaintMap(point.X, point.Y, point.X + 1, point.Y + 1);
+            }
+        }
+
+        List<MyPoint> toPaint = new List<MyPoint>();
+        private void CastLight(in Vector2 posInTile, in int startCol, float leftSlope, float rightSlope, in int oct)
+        {
+            //if block, true
+            bool previousBlock = false;
+
+            float savedSlope = -1;
+            Tile? tempTile;
+
+            for (int currentCol = startCol; currentCol <= FOV_DIST; currentCol++)
+            {
+                int xCol = currentCol;
+
+                for (int yCol = currentCol; yCol >= 0; yCol--)
+                {
+                    //Vector2 tilePos = WorldToTilePos(pos);
+                    Vector2 octPos = TransformOctane(xCol, yCol, oct);
+
+                    int x = (int)posInTile.x + (int)octPos.x;
+                    int y = (int)posInTile.y + (int)octPos.y;
+
+                    this.GetTileAt(out tempTile, x, y, false);
+
+                    if (tempTile.HasValue == false)
                     {
-                        Vector2 tilePos = WorldToTilePos(pos);
-                        Vector2 octane = TransformOctane(row, col, oct);
-
-                        int x = (int)tilePos.x + (int)octane.x;
-                        int y = (int)tilePos.y - (int)octane.y;                        
-                        
-                        if(notCol.Contains(col)){
-                            continue;
-                        }
-                        if(this.IsTileBlocked(x,y, false)){
-                            notCol.Add(col);
-                        }
-
-                        
-
-                        this.PaintMap(x, y, x + 1, y + 1);
-                        Messages.Print("move painting", tilePos.ToString());
+                        continue;
                     }
+
+                    //compute slopes
+                    float leftBlockSlope = (yCol + 0.5f) / (xCol - 0.5f);
+                    float rightBlockSlope = (yCol - 0.5f) / (xCol + 0.5f);
+
+                    //check if outside area
+                    if (rightBlockSlope > leftSlope)
+                    {
+                        // Block is above the left edge of our view area; skip.
+                        continue;
+                    }
+                    else if (leftBlockSlope < rightSlope)
+                    {
+                        // Block is below the right edge of our view area; we're done.
+                        break;
+                    }
+
+                    float distanceSquared = xCol * xCol + yCol * yCol;
+
+                    if (distanceSquared <= FOV_DIST)
+                    {
+                        toPaint.Add(new MyPoint(x, y));
+                    }
+
+                    bool curBlocked = this.IsTileBlocked(x, y, false);
+
+                    if (previousBlock)
+                    {
+                        if (curBlocked)
+                        {
+                            // Still traversing a column of walls.
+                            savedSlope = rightBlockSlope;
+                        }
+                        else
+                        {
+                            // Found the end of the column of walls.  Set the left edge of our
+                            // view area to the right corner of the last wall we saw.
+                            previousBlock = false;
+                            leftSlope = savedSlope;
+                        }
+                    }
+                    else
+                    {
+                        if (curBlocked)
+                        {
+                            // Found a wall.  Split the view area, recursively pursuing the
+                            // part to the left.  The leftmost corner of the wall we just found
+                            // becomes the right boundary of the view area.
+                            //
+                            // If this is the first block in the column, the slope of the top-left
+                            // corner will be greater than the initial view slope (1.0).  Handle
+                            // that here.
+                            if (leftBlockSlope <= leftSlope)
+                            {
+                                CastLight(posInTile, currentCol + 1, leftSlope, leftBlockSlope, oct);
+                            }
+
+                            // Once that's done, we keep searching to the right (down the column),
+                            // looking for another opening.
+                            previousBlock = true;
+                            savedSlope = rightBlockSlope;
+                        }
+                    }
+
+                }
+
+                // Open areas are handled recursively, with the function continuing to search to
+                // the right (down the column).  If we reach the bottom of the column without
+                // finding an open cell, then the area defined by our view area is completely
+                // obstructed, and we can stop working.
+                if (previousBlock)
+                {
+                    break;
                 }
             }
-                
+        }
+        private List<Shadow> end = new List<Shadow>();
+        private List<MyPoint> ToPaint(in int rowStart, in int colStart, in Vector2 posInTile, in int oct)
+        {
+            List<MyPoint> toPaint = new List<MyPoint>();
+            Tile? tempTile;
+            int endCol = colStart;
+            bool lastWall = false;
+            for (int row = rowStart; row < FOV_DIST; row++)
+            {
+
+
+                for (int col = colStart; col <= row; col++)
+                {
+                    //Vector2 tilePos = WorldToTilePos(pos);
+                    Vector2 octPos = TransformOctane(row, col, oct);
+
+                    int x = (int)posInTile.x + (int)octPos.x;
+                    int y = (int)posInTile.y + (int)octPos.y;
+
+                    this.GetTileAt(out tempTile, x, y, false);
+
+                    if (tempTile.HasValue == false)
+                    {
+                        lastWall = true;
+                        break;
+                    }
+
+
+                    //miramos si está en la lista de sombras
+                    Shadow a = this.ShadowProjectTile(row, col);
+
+                    bool paint = true;
+
+                    foreach (Shadow s in end)
+                    {
+                        //miramos
+                        if (a.Contains(s))
+                        {
+                            Messages.Print("yadasydadsasda");
+                            paint = false;
+                            break;
+                        }
+                    }
+
+                    if (paint == false)
+                    {
+                        continue;
+                    }
+
+                    if (tempTile.Value.IsSightBloked)
+                    {
+                        end.Add(a);
+                        lastWall = true;
+                    }
+                    else
+                    {
+                        lastWall = false;
+                    }
+
+                    toPaint.Add(new MyPoint(x, y));
+
+                }
+            }
+
+
+            return toPaint;
         }
 
         private Vector2 TransformOctane(in int row, in int col, in int octant)
@@ -151,21 +317,46 @@ namespace World
             switch (octant)
             {
                 case 0: return new Vector2(col, -row);
-                case 1: return new Vector2(row, -col);
-                case 2: return new Vector2(row, col);
-                case 3: return new Vector2(col, row);
-                case 4: return new Vector2(-col, row);
-                case 5: return new Vector2(-row, col);
-                case 6: return new Vector2(-row, -col);
-                case 7: return new Vector2(-col, -row);
+                case 1: return new Vector2(col, row);
+                case 2: return new Vector2(-col, row);
+                case 3: return new Vector2(-col, -row);
+                case 4: return new Vector2(row, -col);
+                case 5: return new Vector2(row, col);
+                case 6: return new Vector2(-row, col);
+                case 7: return new Vector2(-row, -col);
                 default: return new Vector2(-50, -50);
             }
         }
 
+        private Shadow ShadowProjectTile(in int row, in int col)
+        {
+            /*
+            float topLeft = col / (float)(row + 2);
+            float bottomRight = (float)(col + 1) / (float)(row + 1);*/
+            float topLeft = (col + 0.5f) / (row - 0.5f);
+            float bottomRight = (col - 0.5f) / (row + 0.5f);
+
+            return new Shadow(topLeft, bottomRight);
+        }
+
+
+        public struct Shadow
+        {
+            public float Start;
+            public float End;
 
 
 
+            public Shadow(in float start, in float end)
+            {
+                this.Start = start;
+                this.End = end;
+                Messages.Print("Start and end: ", Start.ToString() + "__" + End.ToString());
+            }
 
+            public bool Contains(in Shadow otherShadow) => (this.Start <= otherShadow.Start && this.End >= otherShadow.End);
+
+        }
 
         private void SetMap()
         {
@@ -183,13 +374,13 @@ namespace World
             Tile? currentTile;
             int id;
 
-            
+
             //Create a dictionary with TileType, TileName
             for (int x = xStart; x < widht; x++)
             {
                 for (int y = yStart; y < height; y++)
                 {
-                    
+
                     if (this.GetTileAt(out currentTile, x, y, false))
                     {
                         this.PaintCell(x, y, currentTile.Value.MyType);
@@ -290,6 +481,19 @@ namespace World
             return true;
         }
 
+        public bool IsTileNoSee(in int posX, in int posY, in bool globalPosition)
+        {
+            Tile? temp;
+
+            if (this.GetTileAt(out temp, posX, posY, globalPosition))
+            {
+                return temp.Value.IsSightBloked;
+            }
+
+            //if null, the player dosn't see
+            return false;
+        }
+
         /// <summary>
         /// Pass a world position to a tile position
         /// </summary>
@@ -321,7 +525,7 @@ namespace World
             //out of bonds
             if (tilePos.x < 0 || tilePos.x >= MyWorld.WIDTH || tilePos.y < 0 || tilePos.y >= MyWorld.HEIGHT)
             {
-                Messages.Print(base.Name, "The tile at pos (" + posX + ", " + posY + ") is out of bonds");
+                //Messages.Print(base.Name, "The tile at pos (" + posX + ", " + posY + ") is out of bonds");
                 tile = null;
                 return false;
             }

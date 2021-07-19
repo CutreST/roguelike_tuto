@@ -28,6 +28,7 @@ namespace World.Dungeon
             //devolvemos
             //return new RoomGridGenerator().GetTiles(out pos);
             return new SimpleGenerator().GetTiles(out pos);
+            //return new FixedMaps().GetTiles(out pos);
         }
 
         
