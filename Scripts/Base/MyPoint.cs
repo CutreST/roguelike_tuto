@@ -17,6 +17,8 @@ namespace Base
             return String.Format("({0},{1})", X, Y);
         }
 
+        public static explicit operator MyPoint(in Vector2 vect) => new MyPoint((int)vect.x, (int)vect.y);
+
         public static MyPoint operator +(in MyPoint a, in MyPoint other) => new MyPoint(a.X + other.X, a.Y + other.Y);
 
         public static MyPoint operator /(in MyPoint a, in MyPoint other) => new MyPoint(a.X / other.X, a.Y / other.Y);

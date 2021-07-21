@@ -6,7 +6,7 @@ namespace World
     //Creo que esto es candidato a struct
     public struct Tile
     {
-        public enum TileType : byte { WALL, FLOOR, DOOR }
+        public enum TileType : byte { WALL, FLOOR, DOOR, NULL }
         public TileType MyType;
         public bool IsBlocked;
         public bool IsSightBloked;

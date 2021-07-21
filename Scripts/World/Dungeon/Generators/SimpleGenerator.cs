@@ -89,6 +89,14 @@ namespace World.Dungeon.Generators
             return ref this.Tiles;
         }
 
+        public override (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, byte> enemies) GetWholePack(){
+            Vector2 playerPos;
+            Tile?[,] tiles = this.GetTiles(out playerPos);
+            Dictionary<MyPoint, byte> enemies = this.SpawnEnemies(new RandomNumberGenerator());
+
+            return (tiles, playerPos, enemies);
+        }
+
         public Vector2 GetInitPos()
         {
             return new Vector2(_dungeonRooms[0].CenterX, _dungeonRooms[0].CenterY);
@@ -350,6 +358,8 @@ namespace World.Dungeon.Generators
             }
         }
 
+        #region room methods
+
         /// <summary>
         /// Creates x rooms in a simple way. We span a room in a random position between <see cref="PosX_Min"/> / <see cref="PosY_Min"/> & <see cref="PosX_Max"/> / <see cref="PosY_Max"/>
         /// with a random size of <see cref="SIZE_MIN"/> & <see cref="SIZE_MAX"/> and, if the room collides with anothes, pass to the other
@@ -443,6 +453,9 @@ namespace World.Dungeon.Generators
             return false;
         }
 
+        #endregion
+
+        #region corridor
         /// <summary>
         /// Creates the corridors to join diferents <see cref="Room"/>. It uses a simple "L" shaped form
         /// <remarks>
@@ -553,6 +566,9 @@ namespace World.Dungeon.Generators
             }
         }
 
+        #endregion
+
+        #region points method
 
         /// <summary>
         /// Checks if a point is inside any room of the <see cref="_dungeonRooms"/>.
@@ -593,6 +609,52 @@ namespace World.Dungeon.Generators
             }
 
             return false;
+        }
+        #endregion
+
+        //esto irá en otra parte, creo
+        const int ENEMY_COUNT_MIN = 0;
+        const int ENEMY_COUNT_MAX = 2;
+        const int PROB_ORC = 80;
+        const int PROB_TROLL = 20;
+        const byte TYPE_ORC = 0;
+        const byte TYPE_TROLL = 1;
+
+        public override Dictionary<MyPoint, byte> SpawnEnemies(in RandomNumberGenerator r){
+            Dictionary<MyPoint, byte> enemies = new Dictionary<MyPoint, byte>();
+            r.Randomize();
+            int result;
+            for (int i = 1; i < _dungeonRooms.Count; i++){
+                result = r.RandiRange(ENEMY_COUNT_MIN, ENEMY_COUNT_MAX);
+
+                if(result > 0){
+                    int prob = r.RandiRange(1, 100);
+                    byte enemy = 255;
+
+                    if(result <= PROB_TROLL){
+                        enemy= TYPE_TROLL;
+                    }else{
+                        enemy = TYPE_ORC;
+                    }
+
+                    MyPoint pos;
+                    bool inRoom = false;
+                    List<Vector2> roomPos = _dungeonRooms[i].GetFloorPositions();
+
+                    while(inRoom == false){
+                        result = r.RandiRange(0, roomPos.Count - 1);
+                        pos = (MyPoint)roomPos[result];
+
+                        if(enemies.ContainsKey(pos) == false){
+                            inRoom = true;
+                            enemies.Add(pos, enemy);
+                        }
+                    }
+                }
+
+            }
+
+            return enemies;
         }
     }
 

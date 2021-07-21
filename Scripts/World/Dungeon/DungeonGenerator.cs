@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using World.Dungeon.Generators;
 using World;
+using Base;
 
 namespace World.Dungeon
 {
@@ -29,6 +30,10 @@ namespace World.Dungeon
             //return new RoomGridGenerator().GetTiles(out pos);
             return new SimpleGenerator().GetTiles(out pos);
             //return new FixedMaps().GetTiles(out pos);
+        }
+
+        public (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, byte> enemies) GetWholePack(){
+            return new SimpleGenerator().GetWholePack();
         }
 
         

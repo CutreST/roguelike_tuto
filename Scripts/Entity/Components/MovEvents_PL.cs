@@ -13,7 +13,7 @@ namespace Entities.Components
         private WorldMapCont _world;
 
         public void OnMove(in Vector2 pos){
-            _world.PaintFOV(pos);
+            _world.NewTurn(pos);
             Messages.Print("Moveeeed");
         }
 
