@@ -6,11 +6,37 @@ using System.Collections.Generic;
 
 namespace World
 {
+    /// <summary>
+    /// System responsible of rendering the gameworld and the objects.
+    /// It relies on CPU power, so at some point I thing I'm gona go with a shader 
+    /// or something similar, but i'm not sure.
+    /// Maybe create a shadow map to.
+    /// </summary>
+    /// <remarks>
+    /// Ok, I have some problem with doors, i use the VisibleMap instead of an
+    /// independent object and, if colision the <see cref="WorldMapCont"/> handles it, but, i think
+    /// it's best to create an object door and write the collision in it's collision complement.
+    ///</remarks> 
+    ///<remarks>
+    /// There's a lot of room for optimization, but this is something for the future me. 
+    /// I have, though, some ideas as using a quadtree for the renderable objects, a two tilempas, one for actual FOV
+    /// and other for no FOV, a Renderable Component (first on list), and so on.
+    ///</remaks>
 
     public class RenderSystem : System_Base
     {
-        //tilemap (teoriamcente podriamos ponerlo en el propio tilemap, pero bueno)
-        public TileMap Tilemap { get; set; }
+        /// <summary>
+        /// The visibleMap
+        /// </summary>
+        public TileMap VisibleMap { get; set; }
+
+        /// <summary>
+        /// The shadowMap
+        /// </summary>
+        public TileMap ShadowMap { get; set; }
+
+        private bool[,] paintedCells;
+
         public WorldMapCont Cont { get; set; }
 
         #region FV settings
@@ -36,8 +62,10 @@ namespace World
         /// </summary>
         private List<MyPoint> toPaint;
 
-        private bool[,] paintedCells;
 
+
+        List<Sprite> _renderableObjects;
+        List<Sprite> _renderedObjects;
 
         #region System Methods
 
@@ -45,6 +73,8 @@ namespace World
         {
             Messages.EnterSystem(this);
             this.toPaint = new List<MyPoint>();
+            this._renderedObjects = new List<Sprite>();
+            this._renderableObjects = new List<Sprite>();
         }
 
         public override void OnExitSystem(params object[] obj)
@@ -52,18 +82,30 @@ namespace World
             Messages.ExitSystem(this);
             this.toPaint.Clear();
             this.toPaint = null;
-            this.Tilemap = null;
+            this.VisibleMap.Clear();
+            this.VisibleMap = null;
+            this.ShadowMap.Clear();
+            this.ShadowMap = null;
+            this.paintedCells = new bool[0, 0];
         }
 
         #endregion
 
         #region Render Methods
 
-        public void StartMap(in int width, in int height)
+        public void StartMap(in int width, in int height, in List<Sprite> renderable)
         {
             toPaint.Clear();
             this.ClearMap(width, height);
+            this._renderableObjects = renderable;
+            this._renderedObjects.Clear();
+
+            foreach (Sprite s in _renderableObjects)
+            {
+                s.Visible = false;
+            }
         }
+
 
         /// <summary>
         /// Paints the fov. Only discovery
@@ -72,9 +114,18 @@ namespace World
         /// <param name="fov">the distance fov,</param>
         public void PaintFOV(in Vector2 posInTile, in int fov = FOV_DIST_DEF)
         {
-            //Tilemap.Clear();
-
+            //clear the previos fov and the last toPaint
+            VisibleMap.Clear();
             toPaint.Clear();
+
+            foreach (Sprite s in _renderedObjects)
+            {
+                s.Visible = false;
+            }
+
+            this._renderableObjects.AddRange(_renderedObjects);
+            this._renderedObjects.Clear();
+
             //first, we check each octant for
             for (int oct = OCTANE_START; oct < OCTANE; oct++)
             {
@@ -84,8 +135,28 @@ namespace World
             for (int i = 0; i < toPaint.Count; i++)
             {
                 this.PaintCell(toPaint[i].X, toPaint[i].Y);
+                //miramos si hay obj que renderizar
+                //OJU! esto será un complemento al sprite para saber si está visible y demás
+                this.PaintObjectInPos(toPaint[i]);
             }
+        }
 
+        public void PaintObjectInPos(in MyPoint pos)
+        {
+            MyPoint tilePos;
+            for (int i = 0; i < _renderableObjects.Count; i++)
+            {
+                tilePos = (MyPoint)Cont.WorldToTilePos(_renderableObjects[i].GlobalPosition);
+
+                if (tilePos.X == pos.X && tilePos.Y == pos.Y)
+                {
+                    _renderableObjects[i].Visible = true;
+                    _renderedObjects.Add(_renderableObjects[i]);
+                    _renderableObjects.RemoveAt(i);
+                    return;
+                }
+
+            }
         }
 
         /// <summary>
@@ -270,7 +341,7 @@ namespace World
         }
 
         /// <summary>
-        /// Paints a simple cell on the tilemap depending on its <see cref="Tile.MyType"/>
+        /// Paints a simple cell on the VisibleMap depending on its <see cref="Tile.MyType"/>
         /// </summary>
         /// <param name="posX">The x position of the tile</param>
         /// <param name="posY">The y position of the tile</param>
@@ -279,12 +350,6 @@ namespace World
         {
             //Ok, so this is going to be a dictionary at some point,
             //OJU! Right now is hardcoded!!!!!
-            
-            //to change, we're gona create something else,
-            
-            /*if(checkPaint && paintedCells[posX, posY]){
-                return;
-            }*/
 
             int id;
             switch (Cont.MyWorld.Tiles[posX, posY].Value.MyType)
@@ -305,14 +370,26 @@ namespace World
                     id = 3;
                     return;
             }
-            paintedCells[posX, posY] = true;
+            VisibleMap.SetCell(posX, posY, id);
 
-            Tilemap.SetCell(posX, posY, id);
+            if (paintedCells[posX, posY] == false)
+            {
+                paintedCells[posX, posY] = true;
+                ShadowMap.SetCell(posX, posY, id);
+            }
         }
 
-        private void ClearMap(in int width, in int height){
-            paintedCells = new bool[width, height];
-            Tilemap.Clear();
+        private void ClearMap(in int width, in int height)
+        {
+            paintedCells = new bool[width, height];            
+            VisibleMap.Clear();
+            ShadowMap.Clear();
+            foreach(Sprite s in _renderedObjects){
+                s.Visible = false;
+            }
+            
+            _renderableObjects.Clear();
+            _renderedObjects.Clear();
         }
         public void PaintCell(in int posX, in int posY)
         {

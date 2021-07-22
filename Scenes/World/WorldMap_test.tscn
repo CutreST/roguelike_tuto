@@ -5,8 +5,21 @@
 
 [node name="WorldMap" type="Node"]
 script = ExtResource( 1 )
+WALL_NAME = "Wall"
+PLAYER_NAME = "Player"
+MAP_VISIBLE_NAME = "VisibleMap"
+MAP_SHADOW_NAME = "ShadowMap"
 
-[node name="TileMap" type="TileMap" parent="."]
+[node name="ShadowMap" type="TileMap" parent="."]
+self_modulate = Color( 0, 0, 0, 1 )
+tile_set = ExtResource( 2 )
+cell_size = Vector2( 24, 24 )
+centered_textures = true
+format = 1
+tile_data = PoolIntArray( 2293822, 3, 0 )
+
+[node name="VisibleMap" type="TileMap" parent="."]
+z_index = 1
 tile_set = ExtResource( 2 )
 cell_size = Vector2( 24, 24 )
 centered_textures = true

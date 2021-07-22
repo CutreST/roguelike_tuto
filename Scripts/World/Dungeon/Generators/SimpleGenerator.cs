@@ -89,10 +89,11 @@ namespace World.Dungeon.Generators
             return ref this.Tiles;
         }
 
-        public override (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, byte> enemies) GetWholePack(){
+        public override (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, EnitityType> enemies) GetWholePack()
+        {
             Vector2 playerPos;
             Tile?[,] tiles = this.GetTiles(out playerPos);
-            Dictionary<MyPoint, byte> enemies = this.SpawnEnemies(new RandomNumberGenerator());
+            Dictionary<MyPoint, EnitityType> enemies = this.SpawnEnemies(new RandomNumberGenerator());
 
             return (tiles, playerPos, enemies);
         }
@@ -267,6 +268,10 @@ namespace World.Dungeon.Generators
                 for (int i = 0; i < eightDir.Length; i++)
                 {
                     tempPoint = current + eightDir[i];
+
+                    if(IsInsideBounds(tempPoint) == false){
+                        continue;
+                    }
                     tile = Tiles[tempPoint.X, tempPoint.Y];
 
                     if (tile.HasValue)
@@ -307,7 +312,7 @@ namespace World.Dungeon.Generators
                 }
             }
         }
-        
+
         private bool IsTileYSegmentAType(in int xConst, in int yOrigin, in int yDest, in Tile.TileType type)
         {
 
@@ -344,7 +349,7 @@ namespace World.Dungeon.Generators
             {
                 for (int y = (int)point.y - yNeig; y <= (int)point.y + yNeig; y++)
                 {
-                    if (x == point.x && y == point.y)
+                    if ((x == point.x && y == point.y) || this.IsInsideBounds(x,y) == false)
                     {
                         continue;
                     }
@@ -356,6 +361,16 @@ namespace World.Dungeon.Generators
                     }
                 }
             }
+        }
+
+        public bool IsInsideBounds(in MyPoint point)
+        {
+            return this.IsInsideBounds(point.X, point.Y);
+        }
+
+        public bool IsInsideBounds(in int x, in int y)
+        {
+            return !(x < 0 || x > _mapSize.X || y < 0 || y >= _mapSize.Y);
         }
 
         #region room methods
@@ -617,35 +632,41 @@ namespace World.Dungeon.Generators
         const int ENEMY_COUNT_MAX = 2;
         const int PROB_ORC = 80;
         const int PROB_TROLL = 20;
-        const byte TYPE_ORC = 0;
-        const byte TYPE_TROLL = 1;
 
-        public override Dictionary<MyPoint, byte> SpawnEnemies(in RandomNumberGenerator r){
-            Dictionary<MyPoint, byte> enemies = new Dictionary<MyPoint, byte>();
+        public override Dictionary<MyPoint, EnitityType> SpawnEnemies(in RandomNumberGenerator r)
+        {
+            Dictionary<MyPoint, EnitityType> enemies = new Dictionary<MyPoint, EnitityType>();
             r.Randomize();
             int result;
-            for (int i = 1; i < _dungeonRooms.Count; i++){
+            for (int i = 1; i < _dungeonRooms.Count; i++)
+            {
                 result = r.RandiRange(ENEMY_COUNT_MIN, ENEMY_COUNT_MAX);
 
-                if(result > 0){
+                if (result > 0)
+                {
                     int prob = r.RandiRange(1, 100);
-                    byte enemy = 255;
+                    EnitityType enemy = EnitityType.EMPTY;
 
-                    if(result <= PROB_TROLL){
-                        enemy= TYPE_TROLL;
-                    }else{
-                        enemy = TYPE_ORC;
+                    if (prob <= PROB_TROLL)
+                    {
+                        enemy = EnitityType.TROLL;
+                    }
+                    else
+                    {
+                        enemy = EnitityType.ORC;
                     }
 
                     MyPoint pos;
                     bool inRoom = false;
                     List<Vector2> roomPos = _dungeonRooms[i].GetFloorPositions();
 
-                    while(inRoom == false){
+                    while (inRoom == false)
+                    {
                         result = r.RandiRange(0, roomPos.Count - 1);
                         pos = (MyPoint)roomPos[result];
 
-                        if(enemies.ContainsKey(pos) == false){
+                        if (enemies.ContainsKey(pos) == false)
+                        {
                             inRoom = true;
                             enemies.Add(pos, enemy);
                         }

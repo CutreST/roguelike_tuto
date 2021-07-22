@@ -32,7 +32,7 @@ namespace World.Dungeon
             //return new FixedMaps().GetTiles(out pos);
         }
 
-        public (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, byte> enemies) GetWholePack(){
+        public (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, EnitityType> enemies) GetWholePack(){
             return new SimpleGenerator().GetWholePack();
         }
 

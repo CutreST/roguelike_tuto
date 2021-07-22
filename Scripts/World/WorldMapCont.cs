@@ -17,18 +17,9 @@ namespace World
 
     public class WorldMapCont : Node
     {
-        //pillamos el tilemap para poder dibujar, lo hará esto 
-        //TODO: OJU! esto podría ser un sistema y ale.
-        /// <summary>
-        /// The current tilemap
-        /// </summary>
-        /// <remarks>
-        /// OJU! Work In Progress.
-        /// Have to thing about the map creation.
-        /// </remarks>
-        private TileMap _tilemap;
-
         private RenderSystem _renderSys;
+
+        private SpawnSystem _spawnSys;
 
         /// <summary>
         /// The world map.
@@ -47,16 +38,13 @@ namespace World
         private readonly string WALL_NAME;
 
         [Export]
-        private readonly string FLOOR_NAME;
-
-        [Export]
-        private readonly string CORRIDOR_NAME;
-
-        [Export]
-        private readonly string DOOR_NAME;
-
-        [Export]
         private readonly string PLAYER_NAME;
+
+        [Export]
+        private readonly string MAP_VISIBLE_NAME;
+
+        [Export]
+        private readonly string MAP_SHADOW_NAME;
 
         #endregion
 
@@ -72,7 +60,7 @@ namespace World
 
             //pains the tilemap
             //this.RunTileMap();
-            
+
 
             //put the controller to the gamesys
             System_Manager manager = System_Manager.GetInstance(this);
@@ -95,12 +83,18 @@ namespace World
             //buscamos al player
             _player = base.GetTree().Root.TryGetFromChild_Rec<Entities.Entity>(PLAYER_NAME);
 
+            
             //metemos el sistema render, oju, cambiar esto un pcoo
-            _tilemap = this.TryGetFromChild_Rec<TileMap>();
+            TileMap tilemap = this.TryGetFromChild_Rec<TileMap>(MAP_VISIBLE_NAME);
             manager.TryGetSystem<RenderSystem>(out _renderSys, true);
-            _renderSys.Tilemap = _tilemap;
+            _renderSys.VisibleMap = tilemap;
             _renderSys.Cont = this;
 
+            tilemap = this.TryGetFromChild_Rec<TileMap>(MAP_SHADOW_NAME);
+            _renderSys.ShadowMap = tilemap;
+
+            //metemos el spawneador
+            manager.TryGetSystem<SpawnSystem>(out _spawnSys, true);
             //rellenamos el diccionario
             this.SetMap();
         }
@@ -118,7 +112,6 @@ namespace World
             if (Input.IsActionJustPressed(SPACE_ACTION))
             {
                 //clear
-                _tilemap.Clear();
                 MyWorld.ClearMap();
 
                 this.SetMap();
@@ -128,26 +121,42 @@ namespace World
         {
             //print fow and so
             _renderSys.PaintFOV(this.WorldToTilePos(pos));
-           
+
         }
 
         private void SetMap()
         {
             Vector2 pos;
-            Dictionary<MyPoint, byte> enemies;
+            Dictionary<MyPoint, EnitityType> enemies;
             Tile?[,] tiles;
             (tiles, pos, enemies) = this._generator.GetWholePack();
             this.MyWorld = new WorldMap(tiles);
 
-
-
-            //this.MyWorld = new WorldMap(this._generator.GetTiles(out pos));
-            //this.PaintMap();
-
             //TODO: change this in it's file
             _player.GlobalPosition = new Vector2(pos.x * 24 + 12, pos.y * 24 + 12);
-            _renderSys.StartMap(this.MyWorld.WIDTH, this.MyWorld.HEIGHT);
-        }     
+            List<Sprite> renderable = new List<Sprite>();
+
+            Vector2 globPos;
+            Sprite sprite;
+
+            Entities.Entity entity;
+            foreach (MyPoint entPos in enemies.Keys)
+            {
+                globPos = TileToWorldPos((Vector2)entPos, true);
+                if (_spawnSys.TrySpawnEntity(enemies[entPos], globPos, this, out entity) == false)
+                {
+                    Messages.Print(base.Name, "ipossible to spwan enemy " + enemies[entPos].ToString());
+                }
+
+                sprite = entity.TryGetFromChild_Rec<Sprite>();
+                renderable.Add(sprite);
+            }
+
+            _renderSys.StartMap(this.MyWorld.WIDTH, this.MyWorld.HEIGHT, renderable);
+
+            //spawneamos
+
+        }
 
         /// <summary>
         /// Is the <see cref="Tile"/> blocked at position?
@@ -188,9 +197,22 @@ namespace World
         /// <returns>Tile position</returns>
         public Vector2 WorldToTilePos(Vector2 pos)
         {
-            pos /= _tilemap.CellSize;
+            pos /= _renderSys.ShadowMap.CellSize;
             pos.x = (int)pos.x;
             pos.y = (int)pos.y;
+
+            return pos;
+        }
+
+        public Vector2 TileToWorldPos(Vector2 pos, bool addCenterOffset)
+        {
+            pos = pos * _renderSys.ShadowMap.CellSize;
+
+            if (addCenterOffset)
+            {
+                pos.x += (int)_renderSys.ShadowMap.CellSize.x / 2;
+                pos.y += (int)_renderSys.ShadowMap.CellSize.y / 2;
+            }
 
             return pos;
         }
@@ -228,7 +250,8 @@ namespace World
 
         }
 
-        public Tile.TileType GetTileType(in int posX, in int posY, in bool isGlobalPos){
+        public Tile.TileType GetTileType(in int posX, in int posY, in bool isGlobalPos)
+        {
             MyPoint tilePos;
 
             if (isGlobalPos)
@@ -249,7 +272,8 @@ namespace World
             }
 
             Tile? t;
-            if(this.GetTileAt(out t, tilePos.X, tilePos.Y, false)){
+            if (this.GetTileAt(out t, tilePos.X, tilePos.Y, false))
+            {
                 return t.Value.MyType;
             }
 
@@ -275,41 +299,6 @@ namespace World
             //joder hay que cambiar la pintura            
             //this.PaintCell((int)pos.x, (int)pos.y, newType);
             _renderSys.PaintCell((int)pos.x, (int)pos.y);
-        }
-
-        /// <summary>
-        /// Paints the tile map        
-        /// </summary>
-        /// <remarks>
-        /// TODO:
-        /// Change name and autotile.
-        ///</remarks>
-        private void RunTileMap()
-        {
-            //primero pillamos tilemap
-
-
-            //si no existe, nos vamos   
-            if (_tilemap == null)
-            {
-                Messages.Print(base.Name, "Tilemap not found on children.");
-                return;
-            }
-
-            TileSet set = _tilemap.TileSet;
-
-            int a = set.FindTileByName(WALL_NAME);
-
-            for (int x = 0; x < MyWorld.Tiles.GetLength(0); x++)
-            {
-                for (int y = 0; y < MyWorld.Tiles.GetLength(1); y++)
-                {
-                    if (MyWorld.Tiles[x, y] != null && MyWorld.Tiles[x, y].Value.IsBlocked)
-                    {
-                        _tilemap.SetCell(x, y, a);
-                    }
-                }
-            }
-        }
+        }       
     }
 }

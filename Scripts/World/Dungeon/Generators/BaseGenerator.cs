@@ -12,8 +12,8 @@ namespace World.Dungeon.Generators
 
         public abstract ref Tile?[,] GetTiles(out Vector2 pos);
 
-        public abstract Dictionary<MyPoint, byte> SpawnEnemies(in RandomNumberGenerator r);
+        public abstract Dictionary<MyPoint, EnitityType> SpawnEnemies(in RandomNumberGenerator r);
 
-        public abstract (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, byte> enemies) GetWholePack();
+        public abstract (Tile?[,] tiles, Vector2 playerPos, Dictionary<MyPoint, EnitityType> enemies) GetWholePack();
     }
 }
