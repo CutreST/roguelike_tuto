@@ -9,4 +9,3 @@
 position = Vector2( 36, 36 )
 
 [node name="WorldMap" parent="." instance=ExtResource( 2 )]
-PLAYER_NAME = "Player"

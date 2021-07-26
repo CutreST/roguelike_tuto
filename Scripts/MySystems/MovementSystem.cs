@@ -18,6 +18,10 @@ namespace MySystems
     {
 
         public WorldMapCont MyWorld { private get; set; }
+
+        private CollisionSystem _collision;
+        private CollisionComp receiver;
+        private CollisionComp emiter;
         private Vector2 tempPos;
 
 
@@ -44,6 +48,15 @@ namespace MySystems
             }
 
             mov.MyEntity.GlobalPosition = tempPos;
+
+            if(mov.MyEntity.TryGetIComponentNode<CollisionComp>(out emiter) == false){
+                return;
+            }
+
+            if(_collision.IsColliding(emiter, out receiver)){
+                emiter.CollisionEmiter(receiver);
+                receiver.CollisionResponse(emiter);
+            }
         }
 
 
@@ -51,6 +64,7 @@ namespace MySystems
         public override void OnEnterSystem(params object[] obj)
         {
             Messages.EnterSystem(this);
+            System_Manager.GetInstance(MyWorld).TryGetSystem<CollisionSystem>(out _collision, true);
 
         }
 

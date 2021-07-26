@@ -396,6 +396,16 @@ namespace World
             this.PaintCell(posX, posY, Cont.GetTileType(posX, posY, false));
         }
 
+        public void RemoveEntityFromRender(in Entities.Entity ent){
+            Sprite s = ent.TryGetFromChild_Rec<Sprite>();
+
+            if(s != null){
+                if(this._renderableObjects.Contains(s)){
+                    this._renderableObjects.Remove(s);
+                }
+            }
+        }
+
         #endregion
 
     }
