@@ -69,6 +69,9 @@ namespace World
             manager.TryGetSystem<InGameSys>(out sys, true);
             sys.MyWorldCont = this;
 
+            //lo metemos en el stack aquí
+            manager.AddToStack(sys);
+
             //ok, so the controller is responsible of calling the movement system 
             //and set itself as a reference.
             //The singleton only works with nodes (i can't get the root node without a node), so, it makes sense

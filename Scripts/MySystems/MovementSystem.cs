@@ -19,6 +19,8 @@ namespace MySystems
 
         public WorldMapCont MyWorld { private get; set; }
 
+        private AttackSystem _attack;
+
         private CollisionSystem _collision;
         private CollisionComp receiver;
         private CollisionComp emiter;
@@ -43,10 +45,11 @@ namespace MySystems
                 if(temp.Value.MyType == Tile.TileType.DOOR){
                     MyWorld.OpenDoor((int)tempPos.x, (int)tempPos.y, true, Tile.TileType.FLOOR);
                 }
-                Messages.Print("nooooo, null or blocked");
+                //Messages.Print("nooooo, null or blocked");
                 return;
             }
 
+            mov.LastPos = mov.MyEntity.GlobalPosition;
             mov.MyEntity.GlobalPosition = tempPos;
 
             if(mov.MyEntity.TryGetIComponentNode<CollisionComp>(out emiter) == false){
@@ -54,9 +57,18 @@ namespace MySystems
             }
 
             if(_collision.IsColliding(emiter, out receiver)){
-                emiter.CollisionEmiter(receiver);
+                //atack system!!!
+                //emiter.CollisionEmiter(receiver);
+                _attack.Attack(emiter, receiver);
                 receiver.CollisionResponse(emiter);
             }
+        }
+
+        public void MoveToLastPos(MovementComp comp)
+        {
+            comp.Direction = comp.LastPos - comp.MyEntity.GlobalPosition;
+            this.Move(comp);
+            //comp.MyEntity.GlobalPosition = comp.LastPos;
         }
 
 
@@ -64,13 +76,17 @@ namespace MySystems
         public override void OnEnterSystem(params object[] obj)
         {
             Messages.EnterSystem(this);
-            System_Manager.GetInstance(MyWorld).TryGetSystem<CollisionSystem>(out _collision, true);
+            MyManager.TryGetSystem<CollisionSystem>(out _collision, true);
+            MyManager.TryGetSystem<AttackSystem>(out _attack, true);
 
         }
 
         public override void OnExitSystem(params object[] obj)
         {
             Messages.ExitSystem(this);
+            _collision = null;
+            _attack = null;
+            MyWorld = null;
         }
         #endregion
     }

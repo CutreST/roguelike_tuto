@@ -14,7 +14,7 @@ namespace Entities.Components
 
         public void OnMove(in Vector2 pos){
             _world.NewTurn(pos);
-            Messages.Print("Moveeeed");
+            //Messages.Print("Moveeeed");
         }
 
         public override void _Ready(){

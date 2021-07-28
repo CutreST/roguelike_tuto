@@ -301,11 +301,11 @@ namespace World.Dungeon.Generators
                     //si hay valor y es wall, el opuesto también lo será
                     if (Tiles[current.X, current.Y].HasValue && Tiles[current.X, current.Y].Value.MyType == Tile.TileType.WALL)
                     {
-                        Messages.Print("Yoloooooooooooo");
+                        /*Messages.Print("Yoloooooooooooo");
                         Messages.Print("before pos:", current.ToString());
-                        Messages.Print("center pos: ", p.ToString());
+                        Messages.Print("center pos: ", p.ToString());*/
                         current = p + new MyPoint(eightDir[i].X * -1, eightDir[i].Y * -1);
-                        Messages.Print("after pos:", current.ToString());
+                        //Messages.Print("after pos:", current.ToString());
                         Tiles[current.X, current.Y] = new Tile(Tile.TileType.WALL);
                         break;
                     }
@@ -459,7 +459,7 @@ namespace World.Dungeon.Generators
                     room.TopLeft.Y < _dungeonRooms[i].BottomRight.Y &&
                     room.BottomRight.Y > _dungeonRooms[i].TopLeft.Y)
                 {
-                    Messages.Print("Simple Generator", "Collision detected");
+                    //Messages.Print("Simple Generator", "Collision detected");
                     return true;
                 }
             }
@@ -514,20 +514,20 @@ namespace World.Dungeon.Generators
                 {
                     this.CreateCorridorXAxis(origin, dest, out corner, out start);
                     this.CreateCorridorYAxis(origin, dest, corner, out end);
-                    Messages.Print("Chances says: ", "chosen first");
+                    //Messages.Print("Chances says: ", "chosen first");
                 }
                 else
                 {
                     this.CreateCorridorXAxis(dest, origin, out corner, out start);
                     this.CreateCorridorYAxis(dest, origin, corner, out end);
-                    Messages.Print("Chances says: ", "chosen second");
+                    //Messages.Print("Chances says: ", "chosen second");
                 }
 
                 //debug messages
-                Messages.Print("Origin: " + origin.TopLeft.X + "/" + origin.TopLeft.Y);
+                /*Messages.Print("Origin: " + origin.TopLeft.X + "/" + origin.TopLeft.Y);
                 Messages.Print("Destination: " + dest.TopLeft.X + "/" + dest.TopLeft.Y);
                 Messages.Print("Center Origin: (" + origin.CenterX + "," + origin.CenterY + ")");
-                Messages.Print("Center Destination: (" + dest.CenterX + "," + dest.CenterY + ")");
+                Messages.Print("Center Destination: (" + dest.CenterX + "," + dest.CenterY + ")");*/
 
                 SimpleCorridor s = new SimpleCorridor(start, end, corner);
                 this.CorridorToMap(s, origin, dest);

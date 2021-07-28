@@ -15,7 +15,7 @@ namespace Entities.Components
         /// <summary>
         /// The direction of the movement
         /// </summary>
-        public Vector2 Direction{ get; protected set; }
+        public Vector2 Direction{ get; set; }
 
         /// <summary>
         /// The <see cref="MovementSystem"/>
@@ -23,6 +23,8 @@ namespace Entities.Components
         private MovementSystem _movSys;
 
         private MovEvents_PL _movEv;
+
+        public Vector2 LastPos{ get; set; }
 
         //TODO:
         //Create a class, struct or wathever to put the dimensions and so.
@@ -47,6 +49,13 @@ namespace Entities.Components
             if(_movEv != null){
                 _movEv.OnMove(MyEntity.GlobalPosition);
             }
+        }
+
+        public void MoveToLastPos(){
+            MyEntity.GlobalPosition = this.LastPos;
+
+            if(_movEv != null)
+                _movEv.OnMove(MyEntity.GlobalPosition);
         }
 
         #region Godot methods

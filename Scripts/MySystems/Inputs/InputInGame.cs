@@ -17,7 +17,7 @@ namespace MySystems.MyInput
         private const int VALUE_LEFT = -1;
         private const int VALUE_RIGHT = 1;
 
-        private Vector2 _inputVector;
+        public Vector2 InputVector{ get; private set; }
         private Vector2 _currentVector;
 
         public delegate void Vector2Delegate(in Vector2 Vector);
@@ -40,33 +40,32 @@ namespace MySystems.MyInput
         {
             _currentVector = new Vector2();
 
-            if (Input.IsActionJustPressed(INPUT_LEFT))
+            if (Input.IsActionPressed(INPUT_LEFT))
             {
                 _currentVector.x = VALUE_LEFT;
             }
-            else if (Input.IsActionJustPressed(INPUT_RIGHT))
+            else if (Input.IsActionPressed(INPUT_RIGHT))
             {
                 _currentVector.x = VALUE_RIGHT;
             }
 
-            if (Input.IsActionJustPressed(INPUT_UP))
+            if (Input.IsActionPressed(INPUT_UP))
             {
                 _currentVector.y = VALUE_UP;
             }
-            else if (Input.IsActionJustPressed(INPUT_DOWN))
+            else if (Input.IsActionPressed(INPUT_DOWN))
             {
                 _currentVector.y = VALUE_DOWN;
             }
+            InputVector = _currentVector;
 
-            //evento;
-            if(_inputVector.x != _currentVector.x || _inputVector.y != _currentVector.y){
-                _inputVector = _currentVector;
-                this.RaiseOnChangeInputVector(_inputVector);
-            }
+            /* //evento;
+             if(_inputVector.x != _currentVector.x || _inputVector.y != _currentVector.y){
+                 _inputVector = _currentVector;
+                 this.RaiseOnChangeInputVector(_inputVector);
+             }*/
 
-            
 
-            
         }
     }
 }

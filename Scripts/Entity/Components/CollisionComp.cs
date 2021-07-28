@@ -16,30 +16,35 @@ namespace Entities.Components
     public class CollisionComp : Node, IComponentNode
     {
         public Entity MyEntity { get; set; }
-        public Vector2 Position{ get => MyEntity.GlobalPosition; }
+        public Vector2 Position { get => MyEntity.GlobalPosition; }
 
         /// <summary>
         /// temp method for handling the collision.
         /// </summary>
         /// <param name="other"></param>
-        public void CollisionResponse(in CollisionComp other){
+        public void CollisionResponse(in CollisionComp other)
+        {
             Messages.Print(other.MyEntity.Name + " has collided with " + this.MyEntity.Name);
         }
 
-        public void CollisionEmiter(in CollisionComp other){
+        public void CollisionEmiter(in CollisionComp other)
+        {
             //ok, cuando emtimos una collisión atacaremos, será más sencillo así.
             //TODO: hacerlo variable
             //pillamos nuestro attack
+
             AttackComp myAttack;
-            if(this.MyEntity.TryGetIComponentNode<AttackComp>(out myAttack) == false){
+            if (this.MyEntity.TryGetIComponentNode<AttackComp>(out myAttack) == false)
+            {
                 return;
             }
 
             AttackComp otherAttack;
-            if(other.MyEntity.TryGetIComponentNode<AttackComp>(out otherAttack) == false){
+            if (other.MyEntity.TryGetIComponentNode<AttackComp>(out otherAttack) == false)
+            {
                 return;
             }
-
+            
             otherAttack.ReceiveAttack(myAttack);
         }
 
@@ -51,7 +56,7 @@ namespace Entities.Components
         }
 
         public override void _ExitTree()
-        {            
+        {
             this.OnSetFree();
         }
         #endregion
@@ -61,11 +66,13 @@ namespace Entities.Components
         {
             //put the coll comp on the list
             CollisionSystem collisionSystem;
-            if(System_Manager.GetInstance(this).TryGetSystem<CollisionSystem>(out collisionSystem, true) == false){
+            if (System_Manager.GetInstance(this).TryGetSystem<CollisionSystem>(out collisionSystem, true) == false)
+            {
                 Messages.AddSystemFailed(collisionSystem, MyEntity.Name);
             }
 
-            if(collisionSystem.TryAddToCollision(this) == false){
+            if (collisionSystem.TryAddToCollision(this) == false)
+            {
                 Messages.Print(MyEntity.Name, "The collision component couldn't enter the list", Messages.MessageType.ERROR);
             }
         }
@@ -75,16 +82,9 @@ namespace Entities.Components
             //sacar de collision
             CollisionSystem system;
 
-            if(System_Manager.GetInstance(this).TryGetSystem<CollisionSystem>(out system)){
+            if (System_Manager.GetInstance(this).TryGetSystem<CollisionSystem>(out system))
+            {
                 system.RemoveFromCollision(this);
-            }
-
-            //esto ira en render component
-            //además cambiaremos el sprite cuando sea, blah
-            RenderSystem render;
-            
-            if(System_Manager.GetInstance(this).TryGetSystem<RenderSystem>(out render)){
-                render.RemoveEntityFromRender(this.MyEntity);
             }
         }
 
