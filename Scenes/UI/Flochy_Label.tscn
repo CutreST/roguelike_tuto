@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Fonts/console_font.tres" type="DynamicFont" id=1]
+
+[node name="Flochy_Label" type="RichTextLabel"]
+margin_right = 384.0
+margin_bottom = 39.0
+custom_fonts/normal_font = ExtResource( 1 )
+fit_content_height = true
+scroll_active = false

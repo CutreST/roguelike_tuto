@@ -1,0 +1,81 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Scripts/UI/Console.cs" type="Script" id=1]
+[ext_resource path="res://Fonts/console_font.tres" type="DynamicFont" id=2]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.0509804, 0.0431373, 0.0431373, 1 )
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+border_color = Color( 0.396078, 0.368627, 0.368627, 1 )
+border_blend = true
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0, 0, 0, 1 )
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+
+[node name="Console" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+TEXT_HOLDER_CACHE = 5
+TEXT_HOLDER_NAME = "TextHolder"
+STATIC_CONTROL_NAME = "StaticControl"
+DISPLAY_TIME = 0.25
+FONT = ExtResource( 2 )
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="Background" type="PanelContainer" parent="CanvasLayer2"]
+visible = false
+margin_left = 616.0
+margin_top = 176.0
+margin_right = 1018.0
+margin_bottom = 408.0
+rect_clip_content = true
+mouse_filter = 2
+input_pass_on_modal_close_click = false
+custom_styles/panel = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Panel" type="Panel" parent="CanvasLayer2"]
+margin_left = 592.0
+margin_top = 336.0
+margin_right = 1008.0
+margin_bottom = 584.0
+custom_styles/panel = SubResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StaticControl" type="Control" parent="CanvasLayer2/Panel"]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 400.0
+margin_bottom = 232.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextHolder" type="VBoxContainer" parent="CanvasLayer2/Panel"]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 400.0
+margin_bottom = 232.0
+rect_clip_content = true
+input_pass_on_modal_close_click = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
