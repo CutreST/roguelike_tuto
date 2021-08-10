@@ -144,7 +144,7 @@ namespace World
         public void PaintObjectInPos(in MyPoint pos)
         {
             MyPoint tilePos;
-            for (int i = 0; i < _renderableObjects.Count; i++)
+            for (int i = _renderableObjects.Count - 1; i >= 0; i--)
             {
                 tilePos = (MyPoint)Cont.WorldToTilePos(_renderableObjects[i].GlobalPosition);
 
@@ -153,7 +153,7 @@ namespace World
                     _renderableObjects[i].Visible = true;
                     _renderedObjects.Add(_renderableObjects[i]);
                     _renderableObjects.RemoveAt(i);
-                    return;
+                    continue;
                 }
 
             }
@@ -381,13 +381,20 @@ namespace World
 
         private void ClearMap(in int width, in int height)
         {
-            paintedCells = new bool[width, height];            
+            paintedCells = new bool[width, height];
             VisibleMap.Clear();
             ShadowMap.Clear();
-            foreach(Sprite s in _renderedObjects){
-                s.Visible = false;
+
+            Messages.Print("Clearing map");
+
+
+            _renderableObjects.AddRange(_renderedObjects);
+            for (int i = _renderableObjects.Count - 1; i >= 0; i--)
+            {
+                //TODO: Renderable componment!!!
+                _renderableObjects[i].GetParent().Free();
             }
-            
+
             _renderableObjects.Clear();
             _renderedObjects.Clear();
         }
@@ -396,11 +403,14 @@ namespace World
             this.PaintCell(posX, posY, Cont.GetTileType(posX, posY, false));
         }
 
-        public void RemoveEntityFromRender(in Entities.Entity ent){
+        public void RemoveEntityFromRender(in Entities.Entity ent)
+        {
             Sprite s = ent.TryGetFromChild_Rec<Sprite>();
 
-            if(s != null){
-                if(this._renderableObjects.Contains(s)){
+            if (s != null)
+            {
+                if (this._renderableObjects.Contains(s))
+                {
                     this._renderableObjects.Remove(s);
                 }
             }

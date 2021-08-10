@@ -21,6 +21,8 @@ namespace World
 
         private SpawnSystem _spawnSys;
 
+        private ConsoleSystem _console;
+
         /// <summary>
         /// The world map.
         /// </summary>
@@ -54,13 +56,6 @@ namespace World
         public override void _EnterTree()
         {
             base._EnterTree();
-            //create a new world,
-            //OJU! change if changes the map
-
-
-            //pains the tilemap
-            //this.RunTileMap();
-
 
             //put the controller to the gamesys
             System_Manager manager = System_Manager.GetInstance(this);
@@ -69,7 +64,7 @@ namespace World
             manager.TryGetSystem<InGameSys>(out sys, true);
             sys.MyWorldCont = this;
 
-            //lo metemos en el stack aquí
+            //add to stack
             manager.AddToStack(sys);
 
             //ok, so the controller is responsible of calling the movement system 
@@ -80,14 +75,14 @@ namespace World
             manager.TryGetSystem<MovementSystem>(out movementSystem, true);
             movementSystem.MyWorld = this;
 
-            //metemos generator para testear
+            //generator to test
             _generator = new DungeonGenerator(this);
 
-            //buscamos al player
+            //look for the player
             _player = base.GetTree().Root.TryGetFromChild_Rec<Entities.Entity>(PLAYER_NAME);
 
-            
-            //metemos el sistema render, oju, cambiar esto un pcoo
+
+            //check and change?
             TileMap tilemap = this.TryGetFromChild_Rec<TileMap>(MAP_VISIBLE_NAME);
             manager.TryGetSystem<RenderSystem>(out _renderSys, true);
             _renderSys.VisibleMap = tilemap;
@@ -96,10 +91,52 @@ namespace World
             tilemap = this.TryGetFromChild_Rec<TileMap>(MAP_SHADOW_NAME);
             _renderSys.ShadowMap = tilemap;
 
-            //metemos el spawneador
+            //put the spawner
             manager.TryGetSystem<SpawnSystem>(out _spawnSys, true);
             //rellenamos el diccionario
+
+            //init camera and cam system
+            this.InitCam(manager);
+            manager.TryGetSystem<ConsoleSystem>(out _console, true);
             this.SetMap();
+        }
+
+        /// <summary>
+        /// Initialices the <see cref="CameraSystem"/> and spawns a camera if there's none
+        /// </summary>
+        private void InitCam(in System_Manager manager)
+        {
+            CameraSystem camSys;
+
+            manager.TryGetSystem<CameraSystem>(out camSys, true);
+
+            //first, check if cam is null
+            if (camSys.MainCamera == null)
+            {
+                //then, check if there's a camera on the scene
+                Camera2D tempCam = base.GetTree().Root.TryGetFromChild_Rec<Camera2D>();
+
+                //if null, then spawn
+                if (tempCam == null)
+                {
+                    tempCam = new Camera2D();
+                }
+
+                camSys.MainCamera = tempCam;
+                //child of map controller, prone to change
+                base.AddChild(tempCam);
+                tempCam.GlobalPosition = _player.GlobalPosition;
+            }
+        }
+
+
+        public override void _Ready()
+        {
+            base._Ready();
+            //load the console, TEST            
+            System_Manager manager = System_Manager.GetInstance(this);
+            ConsoleSystem console;
+            manager.TryGetSystem<ConsoleSystem>(out console, true);
         }
 
 
@@ -124,7 +161,6 @@ namespace World
         {
             //print fow and so
             _renderSys.PaintFOV(this.WorldToTilePos(pos));
-
         }
 
         private void SetMap()
@@ -157,6 +193,9 @@ namespace World
 
             _renderSys.StartMap(this.MyWorld.WIDTH, this.MyWorld.HEIGHT, renderable);
 
+            CameraSystem cameraSystem;
+            System_Manager.GetInstance(this).TryGetSystem<CameraSystem>(out cameraSystem);
+            cameraSystem.Move(_player.GlobalPosition);
             //spawneamos
 
         }
@@ -299,9 +338,10 @@ namespace World
 
             //de momento lo cambiamos a suelo
             MyWorld.Tiles[(int)pos.x, (int)pos.y] = new Tile(newType);
+            _console.WriteOpenDoor();
             //joder hay que cambiar la pintura            
             //this.PaintCell((int)pos.x, (int)pos.y, newType);
             _renderSys.PaintCell((int)pos.x, (int)pos.y);
-        }       
+        }
     }
 }

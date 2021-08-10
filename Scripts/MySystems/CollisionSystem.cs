@@ -25,6 +25,14 @@ namespace MySystems
                 _colObjects.Remove(coll);
             }
         }
+
+        public void ClearColl(){
+            for (int i = 0; i < _colObjects.Count; i++){
+                _colObjects[i].QueueFree();
+            }
+
+            _colObjects.Clear();
+        }
         #endregion
 
         public bool IsColliding(in CollisionComp emiter, out CollisionComp receiver){

@@ -65,6 +65,15 @@ namespace MySystems
         {
             this.MySystems = new Dictionary<Type, System_Base>();
             this.VisualSys = new Stack<Visual_SystemBase>();
+            
+        }
+
+        public System_Manager(in AppManager_GO go){
+            this.MySystems = new Dictionary<Type, System_Base>();
+            this.VisualSys = new Stack<Visual_SystemBase>();
+            _instance = this;
+            this.Init();
+            this.NodeManager = go;
         }
 
         public void Init()

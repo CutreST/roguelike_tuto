@@ -33,7 +33,7 @@ namespace Entities.Components
             //TODO: hacerlo variable
             //pillamos nuestro attack
 
-            AttackComp myAttack;
+           /* AttackComp myAttack;
             if (this.MyEntity.TryGetIComponentNode<AttackComp>(out myAttack) == false)
             {
                 return;
@@ -45,7 +45,7 @@ namespace Entities.Components
                 return;
             }
             
-            otherAttack.ReceiveAttack(myAttack);
+            otherAttack.ReceiveAttack(myAttack);*/
         }
 
 

@@ -11,6 +11,9 @@ namespace MySystems
     /// Plus, we have a custom timer runned by the update delta.
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// Ok, this uses the godot autoload. It works fine, and it's easy this way.
+    /// </remarks>
     public class AppManager_GO : Node
     {
 
@@ -28,6 +31,7 @@ namespace MySystems
         public override void _EnterTree()
         {
             GD.Print("Instance made to the tree");
+            this.Manager = new System_Manager(this);
         }
 
         public override void _Process(float delta)

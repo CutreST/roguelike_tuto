@@ -7,7 +7,7 @@ using Base.Interfaces;
 namespace UI
 {
 
-    public class Console : Control, IUpdate
+    public class Console : Control
     {
         /// <summary>
         /// Chache for populating the <see cref="_unusedLabels"/>
@@ -94,6 +94,7 @@ namespace UI
             index = 0;
 
             this._background = this.TryGetFromChild_Rec<Control>(STATIC_CONTROL_NAME);
+            base.SetProcess(false);
         }
 
         /// <summary>
@@ -162,11 +163,16 @@ namespace UI
             label.VisibleCharacters = 0;
             index++;
             label.SelfModulate = color;
+            //this.PutLabelOnPosition(label);
 
             //add to the queue
             _toWrite.Enqueue(label);
+            if(_toWrite.Count == 1){
+                time2 = DISPLAY_TIME;
+            }
+            base.SetProcess(true);
             //add to the update of the current visualsystem 
-            System_Manager.GetInstance(this).currentSys.AddToUpdate(this);
+            //System_Manager.GetInstance(this).currentSys.AddToUpdate(this);
         }
 
         /// <summary>
@@ -209,11 +215,8 @@ namespace UI
                 if (totalHeight > _background.RectSize.y)
                 {
                     temp = this._textHolder.GetChild<Label>(0);
-                    _unusedLabels.Add(temp);
-                    temp.Hide();
-                    _usedLabels.Remove(temp);
                     this._textHolder.RemoveChild(temp);
-                    temp.Text = "";
+                    this.RemoveLabel(temp);
                 }
                 else
                 {
@@ -221,7 +224,14 @@ namespace UI
                 }
                 #endregion
             }
+        }
 
+        private void RemoveLabel(in Label label)
+        {
+            _unusedLabels.Add(label);
+            label.Hide();
+            _usedLabels.Remove(label);
+            label.Text = "";
         }
 
         /// <summary>
@@ -237,6 +247,8 @@ namespace UI
             this.WriteOnConsole(message, color);
         }
 
+        #region process test
+        /*
         /// <summary>
         /// TODO: ERASE
         /// </summary>
@@ -280,9 +292,22 @@ namespace UI
             }
 
         }
+        */
+        #endregion
 
-        public void MyUpdate(in float delta)
-        {            
+        public void ClearConsoleText()
+        {
+            Label label;
+            for (int i = 0; i < _textHolder.GetChildCount(); i++)
+            {
+                label = _textHolder.GetChild<Label>(i);
+                _textHolder.RemoveChild(label);
+                this.RemoveLabel(label);
+            }
+        }
+
+        public override void _Process(float delta)
+        {
             if (_toWrite.Count > 0)
             {
                 time += delta;
@@ -295,7 +320,7 @@ namespace UI
             }
             else
             {
-                System_Manager.GetInstance(this).currentSys.RemoveFromUpdate(this);
+                base.SetProcess(false);
             }
         }
     }

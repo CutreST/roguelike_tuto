@@ -23,6 +23,8 @@ namespace MySystems
 
         private bool _onTurn;
 
+        private ConsoleSystem _console;
+
         public void MyPhysic(in float delta)
         {
             if (_onTurn == false)
@@ -41,32 +43,13 @@ namespace MySystems
                         _index++;
                         _time = 0;
                 }
-            }
-
-
-            /*
-            //si index mayor, onturn == false y, si onTurn == false, hasta que el tiempo no haya pasado no tiramos al siguiente     
-            if (_index >= this._turnObj.Count)
-            {
-
-                if (_time > TIME_LAPSE)
-                {
-                    Messages.Print("Turn number", _currentTurn.ToString());
-                    this.StartTurn();
-                }
-
-                return;
-            }
-
-            if (this._turnObj[_index].TurnAction())
-            {
-                _index++;
-            }*/
+            }           
         }
 
         private void StartTurn()
         {
             _currentTurn++;
+            _console.WriteTurn(_currentTurn);
             _index = 0;
             _onTurn = false;
             _time = 0;
@@ -106,6 +89,8 @@ namespace MySystems
             InGameSys sys;
             MyManager.TryGetSystem<InGameSys>(out sys, true);
             sys.AddToPhysic(this);
+
+            MyManager.TryGetSystem<ConsoleSystem>(out _console, true);
         }
 
         public override void OnExitSystem(params object[] obj)

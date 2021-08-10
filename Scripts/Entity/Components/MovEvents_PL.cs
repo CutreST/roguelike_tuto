@@ -12,7 +12,10 @@ namespace Entities.Components
 
         private WorldMapCont _world;
 
+        private CameraSystem _cam;
+
         public void OnMove(in Vector2 pos){
+            _cam.Move(pos);
             _world.NewTurn(pos);
             //Messages.Print("Moveeeed");
         }
@@ -33,9 +36,10 @@ namespace Entities.Components
 
         public void Ontart()
         {
-             InGameSys sys;
-            System_Manager.GetInstance(this).TryGetSystem<InGameSys>(out sys);
-
+            System_Manager manager = System_Manager.GetInstance(this);
+            InGameSys sys;
+            manager.TryGetSystem<InGameSys>(out sys);
+            manager.TryGetSystem<CameraSystem>(out _cam, true);
             _world = sys.MyWorldCont;
         }
 
