@@ -9,9 +9,22 @@ namespace Entities.Components
         public Entity MyEntity { get; set; }
 
         private int _health;
+
+        private int _maxHealth;
         private BasicHealthEvents _healthEvents;
 
         #region Export properties
+
+        [Export]
+        public int MaxHealth{
+            get => _health;
+            set{
+                _health = value;
+
+                if()
+            }
+        }
+
         [Export]
         public int Health
         {

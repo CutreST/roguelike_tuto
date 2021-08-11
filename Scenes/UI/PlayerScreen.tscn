@@ -1,0 +1,231 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://Fonts/console_font.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Fonts/NotoMono-Regular.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://Scripts/UI/PlayerScreen.cs" type="Script" id=3]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.0352941, 0.0352941, 0.0352941, 1 )
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+
+[sub_resource type="DynamicFont" id=2]
+resource_local_to_scene = true
+size = 22
+font_data = ExtResource( 2 )
+
+[node name="Control" type="Control"]
+margin_right = 1024.0
+margin_bottom = 600.0
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+HEALTH_NAME = "lbl_health_value"
+HEALTH_MAX_NAME = "lbl_health_max"
+ATTACK_NAME = "lbl_attack_value"
+DEFFENSE_NAME = "lbl_deffense_value"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 128
+
+[node name="Panel" type="Panel" parent="CanvasLayer"]
+margin_left = 768.0
+margin_right = 1024.0
+margin_bottom = 400.0
+custom_styles/panel = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GeneralContainer" type="VBoxContainer" parent="CanvasLayer/Panel"]
+margin_left = 16.0
+margin_top = 14.0
+margin_right = 176.0
+margin_bottom = 142.0
+custom_constants/separation = 19
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="lbl_stats" type="Label" parent="CanvasLayer/Panel/GeneralContainer"]
+margin_right = 187.0
+margin_bottom = 27.0
+custom_fonts/font = SubResource( 2 )
+text = "Player Stats"
+align = 1
+autowrap = true
+
+[node name="StatsContainer" type="VBoxContainer" parent="CanvasLayer/Panel/GeneralContainer"]
+margin_top = 46.0
+margin_right = 187.0
+margin_bottom = 137.0
+custom_constants/separation = 5
+
+[node name="lbl_health" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer"]
+margin_right = 187.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "Health:"
+align = 1
+autowrap = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer"]
+margin_top = 24.0
+margin_right = 187.0
+margin_bottom = 43.0
+alignment = 1
+
+[node name="lbl_health_value" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer/HBoxContainer"]
+margin_left = 64.0
+margin_right = 84.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "22"
+align = 1
+
+[node name="lbl_health_bar" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer/HBoxContainer"]
+margin_left = 88.0
+margin_right = 98.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "/"
+align = 1
+
+[node name="lbl_health_max" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer/HBoxContainer"]
+margin_left = 102.0
+margin_right = 122.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "22"
+align = 1
+
+[node name="AttackContainer" type="HBoxContainer" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer"]
+margin_top = 48.0
+margin_right = 187.0
+margin_bottom = 67.0
+custom_constants/separation = 7
+
+[node name="lbl_attack" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer/AttackContainer"]
+margin_right = 69.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "Attack:"
+
+[node name="lbl_attack_value" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer/AttackContainer"]
+margin_left = 76.0
+margin_right = 86.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "2"
+
+[node name="DeffenseContainer" type="HBoxContainer" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer"]
+margin_top = 72.0
+margin_right = 187.0
+margin_bottom = 91.0
+custom_constants/separation = 7
+
+[node name="lbl_deffense" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer/DeffenseContainer"]
+margin_right = 89.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "Deffense:"
+
+[node name="lbl_deffense_value" type="Label" parent="CanvasLayer/Panel/GeneralContainer/StatsContainer/DeffenseContainer"]
+margin_left = 96.0
+margin_right = 106.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "1"
+
+[node name="EquipContainer" type="VBoxContainer" parent="CanvasLayer/Panel/GeneralContainer"]
+margin_top = 156.0
+margin_right = 187.0
+margin_bottom = 221.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer"]
+margin_right = 187.0
+margin_bottom = 19.0
+
+[node name="lbl_armor2" type="Label" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer/HBoxContainer"]
+margin_right = 59.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "Armor:"
+
+[node name="lbl_armor_value" type="Label" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer/HBoxContainer"]
+margin_left = 63.0
+margin_right = 160.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "def+4 (NO)"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer"]
+margin_top = 23.0
+margin_right = 187.0
+margin_bottom = 42.0
+
+[node name="lbl_weapon" type="Label" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer/HBoxContainer2"]
+margin_right = 69.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "Weapon:"
+
+[node name="lbl_weapon_value" type="Label" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer/HBoxContainer2"]
+margin_left = 73.0
+margin_right = 161.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "at+2 (NO)"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer"]
+margin_top = 46.0
+margin_right = 187.0
+margin_bottom = 65.0
+
+[node name="lbl_amulet" type="Label" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer/HBoxContainer3"]
+margin_right = 69.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "Amulet:"
+
+[node name="lbl_amulet_value" type="Label" parent="CanvasLayer/Panel/GeneralContainer/EquipContainer/HBoxContainer3"]
+margin_left = 73.0
+margin_right = 160.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "hp+1 (NO)"
+
+[node name="KeyContainer" type="VBoxContainer" parent="CanvasLayer/Panel/GeneralContainer"]
+margin_top = 240.0
+margin_right = 187.0
+margin_bottom = 328.0
+
+[node name="lbl_armor_chg" type="Label" parent="CanvasLayer/Panel/GeneralContainer/KeyContainer"]
+margin_right = 187.0
+margin_bottom = 19.0
+custom_fonts/font = ExtResource( 1 )
+text = "F1 - Change armor"
+
+[node name="lbl_weapon_chg2" type="Label" parent="CanvasLayer/Panel/GeneralContainer/KeyContainer"]
+margin_top = 23.0
+margin_right = 187.0
+margin_bottom = 42.0
+custom_fonts/font = ExtResource( 1 )
+text = "F2 - Change weapon"
+
+[node name="lbl_amulet_chg3" type="Label" parent="CanvasLayer/Panel/GeneralContainer/KeyContainer"]
+margin_top = 46.0
+margin_right = 187.0
+margin_bottom = 65.0
+custom_fonts/font = ExtResource( 1 )
+text = "F3 - Change amulet"
+
+[node name="lbl_consum_chg4" type="Label" parent="CanvasLayer/Panel/GeneralContainer/KeyContainer"]
+margin_top = 69.0
+margin_right = 187.0
+margin_bottom = 88.0
+custom_fonts/font = ExtResource( 1 )
+text = "F4 - Use consumable"
