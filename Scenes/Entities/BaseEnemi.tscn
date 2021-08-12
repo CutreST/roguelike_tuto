@@ -5,15 +5,12 @@
 [ext_resource path="res://Scripts/Entity/Components/CollisionComp.cs" type="Script" id=3]
 [ext_resource path="res://Scripts/Entity/Components/Attack/AttackComp.cs" type="Script" id=4]
 [ext_resource path="res://Scripts/Entity/Components/RenderComp.cs" type="Script" id=5]
-[ext_resource path="res://Scripts/Entity/Components/Attack/BasicAttackComp_Events.cs" type="Script" id=6]
+[ext_resource path="res://Scripts/Entity/Components/Attack/AttackHandler_Full.cs" type="Script" id=6]
+[ext_resource path="res://Scripts/Entity/Components/Actions/Resources/TurnDead_Res.res" type="Resource" id=7]
 
 [sub_resource type="AtlasTexture" id=1]
 atlas = ExtResource( 1 )
 region = Rect2( 240, 96, 16, 24 )
-
-[sub_resource type="AtlasTexture" id=2]
-atlas = ExtResource( 1 )
-region = Rect2( 80, 48, 16, 24 )
 
 [node name="Base" type="Node2D"]
 script = ExtResource( 2 )
@@ -31,13 +28,13 @@ Health = 7
 Attack = 2
 Deffense = 1
 
+[node name="AttackCompHandler" type="Node" parent="AttackComp"]
+script = ExtResource( 6 )
+_modHealthActions = [ ExtResource( 7 ) ]
+
 [node name="Sprite" type="Sprite" parent="."]
 modulate = Color( 0, 0, 0, 0.301961 )
 z_index = -2
 texture = ExtResource( 1 )
 region_enabled = true
 region_rect = Rect2( 32, 24, 16, 24 )
-
-[node name="Node" type="Node" parent="."]
-script = ExtResource( 6 )
-_deadSprite = SubResource( 2 )

@@ -24,20 +24,19 @@ namespace MySystems
             {
                 PackedScene sc = GD.Load<PackedScene>(PLAYER_PATH);
                 _playerScreen = sc.Instance<UI.PlayerScreen>();
+                n.AddChild(_playerScreen);
                 n.CallDeferred("add_child", _playerScreen);
             }
         }
 
         #region AttackComp methods
-        public void UpdateHealth(in int health) => _playerScreen.UpdateHealth(health);
+        public void UpdateHealth(in int health) => _playerScreen.CallDeferred("UpdateHealth", health); /*_playerScreen.UpdateHealth(health);*/
 
-        public void UpdateHealth(in int health, in int maxHealth) => _playerScreen.UpdateHealth(health, maxHealth);
+        public void UpdateMaxHealth(in int maxHealt) => _playerScreen.CallDeferred("UpdateMaxHealth", maxHealt); /*_playerScreen.UpdateMaxHealth(maxHealt);*/
 
-        public void UpdateMaxHealth(in int maxHealt) => _playerScreen.UpdateMaxHealth(maxHealt);
+        public void UpdateAttack(in int attack) => _playerScreen.CallDeferred("UpdateAttack", attack); /*_playerScreen.UpdateAttack(attack);*/
 
-        public void UpdateAttack(in int attack) => _playerScreen.UpdateAttack(attack);
-
-        public void UpdateDeffense(in int deffense) => _playerScreen.UpdateDeffense(deffense);
+        public void UpdateDeffense(in int deffense) => _playerScreen.CallDeferred("UpdateDeffense", deffense);/*_playerScreen.UpdateDeffense(deffense);*/
         #endregion
 
 
@@ -45,6 +44,7 @@ namespace MySystems
         public override void OnEnterSystem(params object[] obj)
         {
             Messages.EnterSystem(this);
+            this.Init();
         }
 
         public override void OnExitSystem(params object[] obj)

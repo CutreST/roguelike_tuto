@@ -57,13 +57,7 @@ namespace MySystems.MyInput
             {
                 _currentVector.y = VALUE_DOWN;
             }
-            InputVector = _currentVector;
-
-            /* //evento;
-             if(_inputVector.x != _currentVector.x || _inputVector.y != _currentVector.y){
-                 _inputVector = _currentVector;
-                 this.RaiseOnChangeInputVector(_inputVector);
-             }*/
+            InputVector = _currentVector;           
 
 
         }

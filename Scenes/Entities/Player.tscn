@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Sprites/curses_vector_16x24.png" type="Texture" id=1]
 [ext_resource path="res://Scripts/Entity/Entity.cs" type="Script" id=2]
@@ -8,7 +8,11 @@
 [ext_resource path="res://Scripts/Entity/Components/CollisionComp.cs" type="Script" id=6]
 [ext_resource path="res://Scripts/Entity/Components/Attack/AttackComp.cs" type="Script" id=7]
 [ext_resource path="res://Scripts/Entity/Components/TurnComp.cs" type="Script" id=8]
-[ext_resource path="res://Scripts/Entity/Components/Attack/PlayerAttackComp_Events.cs" type="Script" id=9]
+[ext_resource path="res://Scripts/Entity/Components/Attack/AttackHandler_Full.cs" type="Script" id=9]
+[ext_resource path="res://Scripts/Entity/Components/Actions/Resources/UpdateAttack_Res.tres" type="Resource" id=10]
+[ext_resource path="res://Scripts/Entity/Components/Actions/Resources/UpdateDeffense_Res.tres" type="Resource" id=11]
+[ext_resource path="res://Scripts/Entity/Components/Actions/Resources/UpdateHealth_Res.tres" type="Resource" id=12]
+[ext_resource path="res://Scripts/Entity/Components/Actions/Resources/UpdateMaxHealth_Res.tres" type="Resource" id=13]
 
 [sub_resource type="AtlasTexture" id=1]
 atlas = ExtResource( 1 )
@@ -35,12 +39,18 @@ script = ExtResource( 6 )
 
 [node name="AttackComp" type="Node" parent="."]
 script = ExtResource( 7 )
-Health = 20
-Attack = 3
-Deffense = 1
+MaxHealth = 20
+Health = 4
+Attack = 5
+Deffense = 2
 
 [node name="AttackEvents" type="Node" parent="AttackComp"]
 script = ExtResource( 9 )
+_modHealthActions = [ ExtResource( 12 ) ]
+_onStart = [ ExtResource( 10 ), ExtResource( 11 ), ExtResource( 12 ), ExtResource( 13 ) ]
+_modMaxHealth = [ ExtResource( 13 ) ]
+_modAttack = [ ExtResource( 10 ) ]
+_modDeffense = [ ExtResource( 11 ) ]
 
 [node name="TurnComp" type="Node" parent="."]
 script = ExtResource( 8 )

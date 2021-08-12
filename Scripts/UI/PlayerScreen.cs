@@ -28,16 +28,7 @@ namespace UI
         public override void _EnterTree()
         {
             this.InitHealthLabels();
-            this.InitAtc_Def_Labels();
-
-            #region debug test
-            
-            /*this.UpdateHealth(54, 88);
-            this.UpdateHealth(41);
-            this.UpdateAttack(69);
-            this.UpdateDeffense(14);
-            this.UpdateMaxHealth(400);*/
-            #endregion
+            this.InitAtc_Def_Labels();           
         }
 
         #endregion
