@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://Sprites/curses_vector_16x24.png" type="Texture" id=1]
 [ext_resource path="res://Scripts/Entity/Entity.cs" type="Script" id=2]
@@ -13,6 +13,7 @@
 [ext_resource path="res://Scripts/Entity/Components/Actions/Resources/UpdateDeffense_Res.tres" type="Resource" id=11]
 [ext_resource path="res://Scripts/Entity/Components/Actions/Resources/UpdateHealth_Res.tres" type="Resource" id=12]
 [ext_resource path="res://Scripts/Entity/Components/Actions/Resources/UpdateMaxHealth_Res.tres" type="Resource" id=13]
+[ext_resource path="res://Scripts/Entity/Components/GearComponent.cs" type="Script" id=14]
 
 [sub_resource type="AtlasTexture" id=1]
 atlas = ExtResource( 1 )
@@ -55,3 +56,8 @@ _modDeffense = [ ExtResource( 11 ) ]
 [node name="TurnComp" type="Node" parent="."]
 script = ExtResource( 8 )
 _action = ExtResource( 3 )
+
+[node name="GearComp" type="Node" parent="."]
+script = ExtResource( 14 )
+
+[node name="GearEvents" type="Node" parent="GearComp"]
